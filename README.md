@@ -2,6 +2,8 @@
 
 A clue-based game that runs all night on your laptop. Guests join from their phones, each one gets **secret clue cards**, a **hint drops every few minutes** until someone solves the case, and a **live leaderboard** runs on the TV.
 
+![The TV as a case begins: its title, the five suspects and the story](docs/tv-case-start.jpg)
+
 ## Run it
 
 ```bash
