@@ -4,6 +4,8 @@ A clue-based game that runs all night on your laptop. Guests join from their pho
 
 ![The TV as a case begins: its title, the five suspects and the story](docs/tv-case-start.jpg)
 
+![A guest's phone: the case, the character cards (one turned over), secret clues, the deduction grid, the vault, the accusation and the leaderboard](docs/phone-views.jpg)
+
 ## Run it
 
 ```bash
