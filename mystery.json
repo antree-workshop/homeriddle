@@ -1,0 +1,2444 @@
+{
+  "title": "Murder at Hollowmere Manor",
+  "tagline": "Halloween, 1926. A storm. A locked manor. Twenty guests. Four mysteries before dawn.",
+  "prologue": "The storm has washed out the only road. Nobody leaves Hollowmere Manor tonight, and before dawn four mysteries will unfold, each among a different circle of guests. Each of you carries secret pieces of the truth, and more evidence surfaces as the night goes on. Talk, trade, bluff, and be the first to name the culprit.",
+  "settings": {
+    "updateIntervalMinutes": 7,
+    "lastCallMinutes": 5,
+    "wrongCooldownSeconds": 120,
+    "maxWrongAccusationsPerCase": 3,
+    "lateJoinerCards": 2,
+    "scoring": {
+      "correctBase": 100,
+      "perUpdatePenalty": 10,
+      "minCorrect": 30,
+      "firstSolverBonus": 50,
+      "lastCallMultiplier": 0.5,
+      "wrongPenalty": 10
+    },
+    "vault": {
+      "points": 40,
+      "cooldownSeconds": 60
+    }
+  },
+  "lobbyCast": [
+    {
+      "case": 2,
+      "id": "housekeeper"
+    },
+    {
+      "case": 1,
+      "id": "scholar"
+    },
+    {
+      "case": 1,
+      "id": "heiress"
+    },
+    {
+      "case": 4,
+      "id": "captain"
+    },
+    {
+      "case": 2,
+      "id": "chronicler"
+    }
+  ],
+  "cases": [
+    {
+      "title": "Death at the Masquerade",
+      "intro": "At the stroke of midnight a scream cut through the music. Lord Ambrose Hollowmere, host of tonight's masquerade, lies dead. Each suspect was in exactly one room with exactly one object. As always at Hollowmere: everyone tells the truth, except the murderer. Study the portraits: some clues describe what you can see in them.",
+      "question": "Who killed Lord Hollowmere, with what, and where?",
+      "categories": [
+        {
+          "key": "who",
+          "label": "Suspect",
+          "traits": [
+            {
+              "key": "hand",
+              "label": "Writes with"
+            },
+            {
+              "key": "sign",
+              "label": "Star sign"
+            },
+            {
+              "key": "element",
+              "label": "Element"
+            },
+            {
+              "key": "gender",
+              "label": "Lady or gentleman",
+              "visual": true
+            },
+            {
+              "key": "feathers",
+              "label": "Feathers",
+              "visual": true
+            },
+            {
+              "key": "beard",
+              "label": "Beard",
+              "visual": true
+            },
+            {
+              "key": "eyewear",
+              "label": "Eyeglass",
+              "visual": true
+            },
+            {
+              "key": "holding",
+              "label": "Holding",
+              "visual": true
+            },
+            {
+              "key": "pearls",
+              "label": "Pearls",
+              "visual": true
+            },
+            {
+              "key": "hair",
+              "label": "Hair",
+              "visual": true
+            }
+          ],
+          "options": [
+            {
+              "id": "herbalist",
+              "name": "Mrs. Mei Lin Chen",
+              "desc": "the herbalist",
+              "image": "/img/herbalist.jpg",
+              "icon": "⚖️",
+              "bio": "Mixes the remedies for half the county, weighing every leaf to the grain. Lady Agatha swears by her sleeping draught; the servants swear she knows too much.",
+              "horoscope": "Measure twice tonight. Someone in this house has been counting your drops.",
+              "traits": {
+                "hand": "right",
+                "sign": "♍ Virgo",
+                "element": "Earth",
+                "gender": "lady",
+                "feathers": false,
+                "beard": false,
+                "eyewear": false,
+                "holding": "scales",
+                "pearls": false,
+                "hair": "black"
+              }
+            },
+            {
+              "id": "scholar",
+              "name": "Prof. Thaddeus Grimm",
+              "desc": "the scholar",
+              "icon": "📖",
+              "image": "/img/scholar.jpg",
+              "bio": "A scholar of curses and forbidden books. He has spent the past month 'cataloguing' the Hollowmere library, mostly after midnight.",
+              "horoscope": "A long-held plan comes to fruition beneath the stars.",
+              "traits": {
+                "hand": "left",
+                "sign": "♑ Capricorn",
+                "element": "Earth",
+                "gender": "gentleman",
+                "feathers": false,
+                "beard": true,
+                "eyewear": true,
+                "holding": "book",
+                "pearls": false,
+                "hair": "dark"
+              }
+            },
+            {
+              "id": "heiress",
+              "name": "Lady Evangeline",
+              "desc": "the heiress",
+              "icon": "💎",
+              "image": "/img/heiress.jpg",
+              "bio": "Lord Hollowmere's niece and sole heiress. Smiles politely, says little, and is somehow always the last to leave the library.",
+              "horoscope": "All eyes are on you tonight. Not all of them kindly.",
+              "traits": {
+                "hand": "right",
+                "sign": "♌ Leo",
+                "element": "Fire",
+                "gender": "lady",
+                "feathers": true,
+                "beard": false,
+                "eyewear": false,
+                "holding": "nothing",
+                "pearls": true,
+                "hair": "red"
+              }
+            },
+            {
+              "id": "gardener",
+              "name": "Mr. Solomon Reed",
+              "desc": "the gardener",
+              "image": "/img/gardener.jpg",
+              "icon": "🌿",
+              "bio": "Has tended the Hollowmere glasshouses for twenty years. Knows which flowers heal, which ones kill, and which family secrets are buried under the roses.",
+              "horoscope": "What you buried long ago is close to the surface. Tread softly.",
+              "traits": {
+                "hand": "left",
+                "sign": "♋ Cancer",
+                "element": "Water",
+                "gender": "gentleman",
+                "feathers": false,
+                "beard": true,
+                "eyewear": false,
+                "holding": "trowel",
+                "pearls": false,
+                "hair": "grey"
+              }
+            },
+            {
+              "id": "matriarch",
+              "name": "Lady Agatha Hollowmere",
+              "desc": "the dowager",
+              "icon": "🦉",
+              "image": "/img/matriarch.jpg",
+              "bio": "The late lord's mother, and the true ruler of Hollowmere for fifty years. Sees everything through that monocle, and forgives nothing.",
+              "horoscope": "Your temper is a lantern tonight: it lights the way, and it lights you up for everyone to see.",
+              "traits": {
+                "hand": "right",
+                "sign": "♈ Aries",
+                "element": "Fire",
+                "gender": "lady",
+                "feathers": true,
+                "beard": false,
+                "eyewear": true,
+                "holding": "monocle",
+                "pearls": false,
+                "hair": "white"
+              }
+            }
+          ]
+        },
+        {
+          "key": "what",
+          "label": "Weapon",
+          "traits": [
+            {
+              "key": "weight",
+              "label": "Weight"
+            },
+            {
+              "key": "material",
+              "label": "Material"
+            }
+          ],
+          "options": [
+            {
+              "id": "walkingstick",
+              "name": "Walking Stick",
+              "icon": "🦯",
+              "image": "/img/objects/walkingstick.jpg",
+              "traits": {
+                "weight": "light",
+                "material": "wood"
+              }
+            },
+            {
+              "id": "fork",
+              "name": "Dinner Fork",
+              "icon": "🍴",
+              "image": "/img/objects/fork.jpg",
+              "traits": {
+                "weight": "light",
+                "material": "metal"
+              }
+            },
+            {
+              "id": "paperweight",
+              "name": "Iron Paperweight",
+              "icon": "🪨",
+              "image": "/img/objects/paperweight.jpg",
+              "traits": {
+                "weight": "heavy",
+                "material": "metal"
+              }
+            },
+            {
+              "id": "bust",
+              "name": "Marble Bust",
+              "icon": "🗿",
+              "image": "/img/objects/bust.jpg",
+              "traits": {
+                "weight": "heavy",
+                "material": "stone"
+              }
+            },
+            {
+              "id": "pocketwatch",
+              "name": "Pocket Watch",
+              "desc": "on a long chain",
+              "icon": "⌚",
+              "image": "/img/objects/pocketwatch.jpg",
+              "traits": {
+                "weight": "light",
+                "material": "metal"
+              }
+            }
+          ]
+        },
+        {
+          "key": "where",
+          "label": "Room",
+          "traits": [
+            {
+              "key": "floor",
+              "label": "Floor"
+            }
+          ],
+          "options": [
+            {
+              "id": "ballroom",
+              "name": "Ballroom",
+              "icon": "💃",
+              "image": "/img/rooms/ballroom.jpg",
+              "focus": "50% 45%",
+              "traits": {
+                "floor": "ground"
+              }
+            },
+            {
+              "id": "library",
+              "name": "Library",
+              "icon": "📚",
+              "image": "/img/rooms/library.jpg",
+              "focus": "50% 45%",
+              "traits": {
+                "floor": "upstairs"
+              }
+            },
+            {
+              "id": "chapel",
+              "name": "Chapel",
+              "icon": "⛪",
+              "image": "/img/rooms/chapel.jpg",
+              "focus": "50% 45%",
+              "traits": {
+                "floor": "ground"
+              }
+            },
+            {
+              "id": "observatory",
+              "name": "Observatory",
+              "icon": "🔭",
+              "image": "/img/rooms/observatory.jpg",
+              "focus": "50% 45%",
+              "traits": {
+                "floor": "upstairs"
+              }
+            },
+            {
+              "id": "garden",
+              "name": "Garden",
+              "icon": "🌿",
+              "image": "/img/rooms/garden.jpg",
+              "focus": "50% 45%",
+              "traits": {
+                "floor": "outside"
+              }
+            }
+          ]
+        }
+      ],
+      "solution": {
+        "who": "scholar",
+        "what": "pocketwatch",
+        "where": "observatory"
+      },
+      "clues": [
+        {
+          "public": true,
+          "text": "Mrs. Chen says: “I never went upstairs tonight.”",
+          "rule": {
+            "says": "who:herbalist",
+            "that": {
+              "apart": [
+                "who:herbalist",
+                {
+                  "where": {
+                    "floor": "upstairs"
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "public": true,
+          "text": "Lady Agatha says: “Whoever had the marble bust was upstairs.”",
+          "rule": {
+            "says": "who:matriarch",
+            "that": {
+              "with": [
+                "what:bust",
+                {
+                  "where": {
+                    "floor": "upstairs"
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "public": true,
+          "text": "Lady Evangeline says: “I was out in the Garden.”",
+          "rule": {
+            "says": "who:heiress",
+            "that": {
+              "with": [
+                "who:heiress",
+                "where:garden"
+              ]
+            }
+          }
+        },
+        {
+          "public": true,
+          "text": "Professor Grimm says: “Mrs. Chen was in the Observatory.”",
+          "rule": {
+            "says": "who:scholar",
+            "that": {
+              "with": [
+                "who:herbalist",
+                "where:observatory"
+              ]
+            }
+          }
+        },
+        {
+          "public": true,
+          "text": "Mr. Reed says: “I was in the Ballroom the whole time.”",
+          "rule": {
+            "says": "who:gardener",
+            "that": {
+              "with": [
+                "who:gardener",
+                "where:ballroom"
+              ]
+            }
+          }
+        },
+        {
+          "text": "Nobody wearing feathers went up to the Observatory.",
+          "rule": {
+            "apart": [
+              {
+                "who": {
+                  "feathers": true
+                }
+              },
+              "where:observatory"
+            ]
+          }
+        },
+        {
+          "text": "The walking stick was found leaning against the Chapel door.",
+          "rule": {
+            "with": [
+              "what:walkingstick",
+              "where:chapel"
+            ]
+          }
+        },
+        {
+          "text": "The iron paperweight never went upstairs.",
+          "rule": {
+            "apart": [
+              "what:paperweight",
+              {
+                "where": {
+                  "floor": "upstairs"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "text": "Everyone with an eyeglass of any kind was upstairs.",
+          "rule": {
+            "with": [
+              {
+                "who": {
+                  "eyewear": true
+                }
+              },
+              {
+                "where": {
+                  "floor": "upstairs"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "release": 1,
+          "public": true,
+          "text": "The coroner: Lord Hollowmere was killed upstairs.",
+          "rule": {
+            "with": [
+              "murderer",
+              {
+                "where": {
+                  "floor": "upstairs"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "text": "Nobody with empty hands in their portrait carried anything heavy.",
+          "rule": {
+            "apart": [
+              {
+                "who": {
+                  "holding": "nothing"
+                }
+              },
+              {
+                "what": {
+                  "weight": "heavy"
+                }
+              }
+            ]
+          },
+          "release": 1
+        },
+        {
+          "release": 2,
+          "public": true,
+          "text": "The murder weapon was light enough to hide under a coat.",
+          "rule": {
+            "with": [
+              "murderer",
+              {
+                "what": {
+                  "weight": "light"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "release": 2,
+          "text": "The pocket watch was upstairs.",
+          "rule": {
+            "with": [
+              "what:pocketwatch",
+              {
+                "where": {
+                  "floor": "upstairs"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "release": 3,
+          "public": true,
+          "text": "The vicar tells two truths and one lie: “Mr. Reed had the iron paperweight.” “Lady Agatha was in the Library.” “Lady Evangeline had the walking stick.”",
+          "rule": {
+            "exactly": 2,
+            "of": [
+              {
+                "with": [
+                  "who:gardener",
+                  "what:paperweight"
+                ]
+              },
+              {
+                "with": [
+                  "who:matriarch",
+                  "where:library"
+                ]
+              },
+              {
+                "with": [
+                  "who:heiress",
+                  "what:walkingstick"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "text": "None of the ladies touched the pocket watch.",
+          "rule": {
+            "apart": [
+              {
+                "who": {
+                  "gender": "lady"
+                }
+              },
+              "what:pocketwatch"
+            ]
+          },
+          "release": 3
+        },
+        {
+          "release": 4,
+          "public": true,
+          "text": "The astrologer has read the stars: the killer was born under an earth sign.",
+          "rule": {
+            "with": [
+              "murderer",
+              {
+                "who": {
+                  "element": "Earth"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "release": 5,
+          "public": true,
+          "text": "The body lay beneath the great telescope, a broken watch chain wound around his neck.",
+          "rule": {
+            "and": [
+              {
+                "with": [
+                  "murderer",
+                  "where:observatory"
+                ]
+              },
+              {
+                "with": [
+                  "murderer",
+                  "what:pocketwatch"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "release": 6,
+          "public": true,
+          "text": "The maid remembers more: the killer had a beard.",
+          "rule": {
+            "with": [
+              "murderer",
+              {
+                "who": {
+                  "beard": true
+                }
+              }
+            ]
+          }
+        },
+        {
+          "release": 2,
+          "text": "Nobody born under a fire sign touched the pocket watch.",
+          "rule": {
+            "apart": [
+              {
+                "who": {
+                  "element": "Fire"
+                }
+              },
+              "what:pocketwatch"
+            ]
+          }
+        },
+        {
+          "vault": true,
+          "text": "A note from the chaplain, locked away for safekeeping: “Mrs. Chen sat in the Chapel all through the masquerade. I never saw her leave.”",
+          "rule": {
+            "with": [
+              "who:herbalist",
+              "where:chapel"
+            ]
+          }
+        }
+      ],
+      "solutionStory": "Professor Grimm lured Lord Hollowmere up to the Observatory to 'see an omen in the stars', then strangled him with the chain of his own pocket watch. Hollowmere had found out that Grimm was selling the manor's forbidden books, and that Grimm was courting his niece."
+    },
+    {
+      "title": "The Curse of the Crimson Heart",
+      "intro": "One o'clock. While the whole house whispers about the murder, the Crimson Heart, a cursed ruby the size of a hen's egg, vanishes from the vault in the east wing. Only five guests were in the east wing tonight. Each spent the hour beside exactly one of the wing's curiosities, with exactly one tool. The thief opened the vault with their tool and hid the ruby inside the curiosity they were beside. Only the thief lies. Study the portraits: some clues describe what you can see in them.",
+      "question": "Who stole the ruby, with which tool, and what is it hidden inside?",
+      "categories": [
+        {
+          "key": "who",
+          "label": "Suspect",
+          "traits": [
+            {
+              "key": "hand",
+              "label": "Writes with"
+            },
+            {
+              "key": "sign",
+              "label": "Star sign"
+            },
+            {
+              "key": "element",
+              "label": "Element"
+            },
+            {
+              "key": "gender",
+              "label": "Lady or gentleman",
+              "visual": true
+            },
+            {
+              "key": "book",
+              "label": "Book",
+              "visual": true
+            },
+            {
+              "key": "earrings",
+              "label": "Earrings",
+              "visual": true
+            },
+            {
+              "key": "hair",
+              "label": "Hair",
+              "visual": true
+            },
+            {
+              "key": "mask",
+              "label": "Mask",
+              "visual": true
+            }
+          ],
+          "options": [
+            {
+              "id": "housekeeper",
+              "name": "Mrs. Ada Blackwood",
+              "desc": "the housekeeper",
+              "icon": "🗝️",
+              "image": "/img/housekeeper.jpg",
+              "bio": "Has run the Hollowmere household for thirty years. Carries every key in the house, and a book of etiquette she quotes at anyone who slouches.",
+              "horoscope": "Every lock yields to patience. So do people.",
+              "traits": {
+                "hand": "right",
+                "sign": "♉ Taurus",
+                "element": "Earth",
+                "gender": "lady",
+                "book": true,
+                "earrings": true,
+                "hair": "grey",
+                "mask": false
+              }
+            },
+            {
+              "id": "voyager",
+              "name": "Jack Harlow",
+              "desc": "the voyager",
+              "icon": "🧭",
+              "image": "/img/voyager.jpg",
+              "bio": "Just back from mapping rivers nobody can pronounce. Claims he has seen worse curses than this one, and has the scars to prove it.",
+              "horoscope": "The road calls, but the storm has other plans. Stay where you can be seen.",
+              "traits": {
+                "hand": "left",
+                "sign": "♐ Sagittarius",
+                "element": "Fire",
+                "gender": "gentleman",
+                "book": false,
+                "earrings": false,
+                "hair": "dark",
+                "mask": false
+              }
+            },
+            {
+              "id": "alchemist",
+              "name": "Silas Mordaunt",
+              "desc": "the alchemist",
+              "icon": "⚗️",
+              "image": "/img/alchemist.jpg",
+              "bio": "Turns lead into debts and potions into rumours. The Hollowmeres hired him to 'cleanse' the Crimson Heart of its curse.",
+              "horoscope": "A transformation is coming. Make sure it is not your reputation.",
+              "traits": {
+                "hand": "right",
+                "sign": "♏ Scorpio",
+                "element": "Water",
+                "gender": "gentleman",
+                "book": false,
+                "earrings": false,
+                "hair": "dark",
+                "mask": false
+              }
+            },
+            {
+              "id": "actress",
+              "name": "Miss Viola Sterling",
+              "desc": "the actress",
+              "icon": "🎭",
+              "image": "/img/actress.jpg",
+              "bio": "The toast of the London stage, booked to perform at midnight. She can cry on cue, faint on cue, and change costume in eleven seconds.",
+              "horoscope": "Applause is sweet, but the quiet hours bring the real reward.",
+              "traits": {
+                "hand": "right",
+                "sign": "♎ Libra",
+                "element": "Air",
+                "gender": "lady",
+                "book": false,
+                "earrings": true,
+                "hair": "red",
+                "mask": true
+              }
+            },
+            {
+              "id": "chronicler",
+              "name": "Elias Wren",
+              "desc": "the chronicler",
+              "icon": "📜",
+              "image": "/img/chronicler.jpg",
+              "bio": "Has written the Hollowmere family history for forty years, and knows exactly which chapters were left out.",
+              "horoscope": "Every story has a missing chapter. Tonight you might find yours.",
+              "traits": {
+                "hand": "left",
+                "sign": "♊ Gemini",
+                "element": "Air",
+                "gender": "gentleman",
+                "book": true,
+                "earrings": false,
+                "hair": "white",
+                "mask": false
+              }
+            }
+          ]
+        },
+        {
+          "key": "what",
+          "label": "Tool",
+          "traits": [
+            {
+              "key": "weight",
+              "label": "Weight"
+            },
+            {
+              "key": "noisy",
+              "label": "Noisy"
+            }
+          ],
+          "options": [
+            {
+              "id": "key",
+              "name": "Skeleton Key",
+              "icon": "🗝️",
+              "image": "/img/tools/key.jpg",
+              "traits": {
+                "weight": "light",
+                "noisy": false
+              }
+            },
+            {
+              "id": "crowbar",
+              "name": "Crowbar",
+              "icon": "🔧",
+              "image": "/img/tools/crowbar.jpg",
+              "traits": {
+                "weight": "heavy",
+                "noisy": true
+              }
+            },
+            {
+              "id": "hairpin",
+              "name": "Hairpin",
+              "icon": "📌",
+              "image": "/img/tools/hairpin.jpg",
+              "traits": {
+                "weight": "light",
+                "noisy": false
+              }
+            },
+            {
+              "id": "candle",
+              "name": "Melted Candle",
+              "desc": "for a wax impression",
+              "icon": "🕯️",
+              "image": "/img/tools/candle.jpg",
+              "traits": {
+                "weight": "light",
+                "noisy": false
+              }
+            },
+            {
+              "id": "poker",
+              "name": "Fireplace Poker",
+              "icon": "🔥",
+              "image": "/img/tools/poker.jpg",
+              "traits": {
+                "weight": "heavy",
+                "noisy": true
+              }
+            }
+          ]
+        },
+        {
+          "key": "where",
+          "label": "Hidden inside",
+          "traits": [
+            {
+              "key": "floor",
+              "label": "Floor"
+            },
+            {
+              "key": "music",
+              "label": "Plays music"
+            }
+          ],
+          "options": [
+            {
+              "id": "globe",
+              "name": "The Globe",
+              "desc": "in the study",
+              "icon": "🌍",
+              "image": "/img/objects/globe.jpg",
+              "traits": {
+                "floor": "ground",
+                "music": false
+              }
+            },
+            {
+              "id": "gramophone",
+              "name": "The Gramophone",
+              "desc": "in the music room",
+              "icon": "🎺",
+              "image": "/img/objects/gramophone.jpg",
+              "traits": {
+                "floor": "ground",
+                "music": true
+              }
+            },
+            {
+              "id": "daguerreotype",
+              "name": "The Camera",
+              "desc": "daguerreotype, in the parlour",
+              "icon": "📷",
+              "image": "/img/objects/daguerreotype.jpg",
+              "traits": {
+                "floor": "ground",
+                "music": false
+              }
+            },
+            {
+              "id": "sewingkit",
+              "name": "The Sewing Box",
+              "desc": "in the sewing room",
+              "icon": "🧵",
+              "image": "/img/objects/sewingkit.jpg",
+              "traits": {
+                "floor": "upstairs",
+                "music": false
+              }
+            },
+            {
+              "id": "toys",
+              "name": "The Clockwork Toys",
+              "desc": "music box, in the nursery",
+              "icon": "🤖",
+              "image": "/img/objects/toys.jpg",
+              "traits": {
+                "floor": "upstairs",
+                "music": true
+              }
+            }
+          ]
+        }
+      ],
+      "solution": {
+        "who": "actress",
+        "what": "hairpin",
+        "where": "gramophone"
+      },
+      "clues": [
+        {
+          "public": true,
+          "text": "Mrs. Blackwood says: “I was upstairs in the sewing room all evening, mending costumes.”",
+          "rule": {
+            "says": "who:housekeeper",
+            "that": {
+              "with": [
+                "who:housekeeper",
+                "where:sewingkit"
+              ]
+            }
+          }
+        },
+        {
+          "public": true,
+          "text": "Jack Harlow says: “I had the crowbar. I’d never pick a lock with it.”",
+          "rule": {
+            "says": "who:voyager",
+            "that": {
+              "with": [
+                "who:voyager",
+                "what:crowbar"
+              ]
+            }
+          }
+        },
+        {
+          "public": true,
+          "text": "Silas Mordaunt says: “Whoever had the candle was upstairs.”",
+          "rule": {
+            "says": "who:alchemist",
+            "that": {
+              "with": [
+                "what:candle",
+                {
+                  "where": {
+                    "floor": "upstairs"
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "public": true,
+          "text": "Miss Sterling says: “I was up in the nursery, playing with the clockwork toys.”",
+          "rule": {
+            "says": "who:actress",
+            "that": {
+              "with": [
+                "who:actress",
+                "where:toys"
+              ]
+            }
+          }
+        },
+        {
+          "public": true,
+          "text": "Elias Wren says: “Mrs. Blackwood never touched the poker.”",
+          "rule": {
+            "says": "who:chronicler",
+            "that": {
+              "apart": [
+                "who:housekeeper",
+                "what:poker"
+              ]
+            }
+          }
+        },
+        {
+          "text": "Everyone holding a book in their portrait was upstairs.",
+          "rule": {
+            "with": [
+              {
+                "who": {
+                  "book": true
+                }
+              },
+              {
+                "where": {
+                  "floor": "upstairs"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "text": "Whoever had the crowbar stayed on the ground floor.",
+          "rule": {
+            "with": [
+              "what:crowbar",
+              {
+                "where": {
+                  "floor": "ground"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "text": "Nobody wearing earrings carried anything heavy.",
+          "rule": {
+            "apart": [
+              {
+                "who": {
+                  "earrings": true
+                }
+              },
+              {
+                "what": {
+                  "weight": "heavy"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "text": "The poker was nowhere near anything that plays music.",
+          "rule": {
+            "apart": [
+              "what:poker",
+              {
+                "where": {
+                  "music": true
+                }
+              }
+            ]
+          }
+        },
+        {
+          "release": 1,
+          "public": true,
+          "text": "The vault was opened in perfect silence. Nobody heard a thing.",
+          "rule": {
+            "with": [
+              "culprit",
+              {
+                "what": {
+                  "noisy": false
+                }
+              }
+            ]
+          }
+        },
+        {
+          "release": 1,
+          "text": "Nobody with dark hair was upstairs.",
+          "rule": {
+            "apart": [
+              {
+                "who": {
+                  "hair": "dark"
+                }
+              },
+              {
+                "where": {
+                  "floor": "upstairs"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "release": 2,
+          "public": true,
+          "text": "Wet footprints lead from the vault and never climb the stairs. The thief stayed on the ground floor.",
+          "rule": {
+            "with": [
+              "culprit",
+              {
+                "where": {
+                  "floor": "ground"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "release": 2,
+          "text": "Whoever had the skeleton key is holding a book in their portrait.",
+          "rule": {
+            "with": [
+              "what:key",
+              {
+                "who": {
+                  "book": true
+                }
+              }
+            ]
+          }
+        },
+        {
+          "release": 3,
+          "public": true,
+          "text": "Edgar the stable boy tells two truths and one lie: “Jack Harlow stood by the globe.” “Elias Wren had the poker.” “The candle was in the nursery.”",
+          "rule": {
+            "exactly": 2,
+            "of": [
+              {
+                "with": [
+                  "who:voyager",
+                  "where:globe"
+                ]
+              },
+              {
+                "with": [
+                  "who:chronicler",
+                  "what:poker"
+                ]
+              },
+              {
+                "with": [
+                  "what:candle",
+                  "where:toys"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "release": 3,
+          "text": "Whoever had the hairpin wears earrings.",
+          "rule": {
+            "with": [
+              "what:hairpin",
+              {
+                "who": {
+                  "earrings": true
+                }
+              }
+            ]
+          }
+        },
+        {
+          "release": 4,
+          "public": true,
+          "text": "A trace of rose perfume hung inside the vault. The thief is a lady.",
+          "rule": {
+            "with": [
+              "culprit",
+              {
+                "who": {
+                  "gender": "lady"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "release": 5,
+          "public": true,
+          "text": "The keyhole is scratched all over. Whoever opened it did not have a key.",
+          "rule": {
+            "apart": [
+              "culprit",
+              "what:key"
+            ]
+          }
+        },
+        {
+          "release": 6,
+          "public": true,
+          "text": "Inside the gramophone’s horn: the Crimson Heart, a bent hairpin, and a smear of stage greasepaint.",
+          "rule": {
+            "and": [
+              {
+                "with": [
+                  "culprit",
+                  "where:gramophone"
+                ]
+              },
+              {
+                "with": [
+                  "culprit",
+                  "what:hairpin"
+                ]
+              },
+              {
+                "with": [
+                  "culprit",
+                  {
+                    "who": {
+                      "mask": true
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "vault": true,
+          "text": "A sketch by Elias Wren, dated tonight: Jack Harlow, leaning on the Globe, drawn from life. “He never moved all evening.”",
+          "rule": {
+            "with": [
+              "who:voyager",
+              "where:globe"
+            ]
+          }
+        }
+      ],
+      "solutionStory": "Miss Sterling picked the vault's lock with a hairpin between two costume changes, then dropped the Crimson Heart into the gramophone's horn and put on a record to cover the clink. The housekeeper's keys? A red herring, just like the actress planned."
+    },
+    {
+      "title": "The Poisoned Toast",
+      "intro": "Two o'clock. In the drawing room, Dr. Silas Crane, the family physician, raises a glass: “To the truth!” He collapses. He's alive, barely. Five guests stood around the toast table. Each brought exactly one drink, and each has exactly one reason to want Crane silenced. Only the poisoner lies. Study the portraits: some clues describe what you can see in them.",
+      "question": "Who poisoned Dr. Crane, in which drink, and why?",
+      "categories": [
+        {
+          "key": "who",
+          "label": "Suspect",
+          "traits": [
+            {
+              "key": "hand",
+              "label": "Writes with"
+            },
+            {
+              "key": "sign",
+              "label": "Star sign"
+            },
+            {
+              "key": "element",
+              "label": "Element"
+            },
+            {
+              "key": "gender",
+              "label": "Lady or gentleman",
+              "visual": true
+            },
+            {
+              "key": "feathers",
+              "label": "Feathers",
+              "visual": true
+            },
+            {
+              "key": "book",
+              "label": "Book",
+              "visual": true
+            },
+            {
+              "key": "greyHair",
+              "label": "Grey or white hair",
+              "visual": true
+            },
+            {
+              "key": "earrings",
+              "label": "Earrings",
+              "visual": true
+            },
+            {
+              "key": "cross",
+              "label": "Cross",
+              "visual": true
+            }
+          ],
+          "options": [
+            {
+              "id": "poet",
+              "name": "Percival Ashdown",
+              "desc": "the poet",
+              "icon": "🪶",
+              "image": "/img/poet.jpg",
+              "bio": "Dr. Crane's nephew, and a poet of very gloomy verse. Writes sonnets about his own funeral and reads them aloud at parties.",
+              "horoscope": "Your heart writes cheques your purse cannot cash.",
+              "traits": {
+                "hand": "left",
+                "sign": "♓ Pisces",
+                "element": "Water",
+                "gender": "gentleman",
+                "feathers": true,
+                "book": true,
+                "greyHair": false,
+                "earrings": false,
+                "cross": false
+              }
+            },
+            {
+              "id": "detective",
+              "name": "Mr. Ambrose Finch",
+              "desc": "the detective",
+              "icon": "🔎",
+              "image": "/img/detective.jpg",
+              "bio": "Retired from Scotland Yard after a case went badly wrong. Dr. Crane testified in that case, and Finch has not forgotten.",
+              "horoscope": "The smallest detail will speak the loudest. Listen for it.",
+              "traits": {
+                "hand": "right",
+                "sign": "♍ Virgo",
+                "element": "Earth",
+                "gender": "gentleman",
+                "feathers": false,
+                "book": false,
+                "greyHair": true,
+                "earrings": false,
+                "cross": false
+              }
+            },
+            {
+              "id": "inventor",
+              "name": "Felix Tinker",
+              "desc": "the inventor",
+              "icon": "⚙️",
+              "image": "/img/inventor.jpg",
+              "bio": "Builds clockwork marvels that almost work. Borrowed heavily to fund his latest one, which is ticking in his hands right now.",
+              "horoscope": "A brilliant idea arrives at the worst possible moment.",
+              "traits": {
+                "hand": "right",
+                "sign": "♒ Aquarius",
+                "element": "Air",
+                "gender": "gentleman",
+                "feathers": false,
+                "book": false,
+                "greyHair": true,
+                "earrings": false,
+                "cross": false
+              }
+            },
+            {
+              "id": "socialite",
+              "name": "Miss Daisy Fairfax",
+              "desc": "the socialite",
+              "icon": "🌸",
+              "image": "/img/socialite.jpg",
+              "bio": "Never misses a party and never forgets a slight. Tonight she noticed exactly who Dr. Crane did, and did not, dance with.",
+              "horoscope": "Charm opens every door tonight, except the one you need.",
+              "traits": {
+                "hand": "right",
+                "sign": "♎ Libra",
+                "element": "Air",
+                "gender": "lady",
+                "feathers": true,
+                "book": false,
+                "greyHair": false,
+                "earrings": true,
+                "cross": false
+              }
+            },
+            {
+              "id": "clergyman",
+              "name": "Reverend Josiah Hale",
+              "desc": "the clergyman",
+              "icon": "✝️",
+              "image": "/img/clergyman.jpg",
+              "bio": "Vicar of Hollowmere parish for thirty years and beloved by all. Before he took holy orders, nobody quite knows where he was.",
+              "horoscope": "Your past and your present will sit at the same table tonight.",
+              "traits": {
+                "hand": "left",
+                "sign": "♊ Gemini",
+                "element": "Air",
+                "gender": "gentleman",
+                "feathers": false,
+                "book": true,
+                "greyHair": true,
+                "earrings": false,
+                "cross": true
+              }
+            }
+          ]
+        },
+        {
+          "key": "what",
+          "label": "Drink",
+          "traits": [
+            {
+              "key": "bubbly",
+              "label": "Bubbly"
+            },
+            {
+              "key": "color",
+              "label": "Colour"
+            }
+          ],
+          "options": [
+            {
+              "id": "punch",
+              "name": "Pumpkin Punch",
+              "icon": "🍹",
+              "image": "/img/drinks/punch.jpg",
+              "focus": "50% 60%",
+              "traits": {
+                "bubbly": false,
+                "color": "orange"
+              }
+            },
+            {
+              "id": "wine",
+              "name": "Red Wine",
+              "icon": "🍷",
+              "image": "/img/drinks/wine.jpg",
+              "focus": "50% 60%",
+              "traits": {
+                "bubbly": false,
+                "color": "red"
+              }
+            },
+            {
+              "id": "absinthe",
+              "name": "Absinthe",
+              "icon": "🍸",
+              "image": "/img/drinks/absinthe.jpg",
+              "focus": "50% 60%",
+              "traits": {
+                "bubbly": false,
+                "color": "green"
+              }
+            },
+            {
+              "id": "champagne",
+              "name": "Champagne",
+              "icon": "🥂",
+              "image": "/img/drinks/champagne.jpg",
+              "focus": "50% 60%",
+              "traits": {
+                "bubbly": true,
+                "color": "gold"
+              }
+            },
+            {
+              "id": "brew",
+              "name": "Witches' Brew",
+              "desc": "fizzy, alcohol-free",
+              "icon": "🧪",
+              "image": "/img/drinks/brew.jpg",
+              "focus": "50% 60%",
+              "traits": {
+                "bubbly": true,
+                "color": "green"
+              }
+            }
+          ]
+        },
+        {
+          "key": "why",
+          "label": "Motive",
+          "traits": [
+            {
+              "key": "kind",
+              "label": "About"
+            }
+          ],
+          "options": [
+            {
+              "id": "inheritance",
+              "name": "Inheritance",
+              "icon": "📜",
+              "image": "/img/motives/inheritance.jpg",
+              "focus": "50% 65%",
+              "traits": {
+                "kind": "money"
+              }
+            },
+            {
+              "id": "debt",
+              "name": "Gambling Debt",
+              "icon": "🎲",
+              "image": "/img/motives/debt.jpg",
+              "focus": "50% 65%",
+              "traits": {
+                "kind": "money"
+              }
+            },
+            {
+              "id": "revenge",
+              "name": "Revenge",
+              "icon": "🗡️",
+              "image": "/img/motives/revenge.jpg",
+              "focus": "50% 65%",
+              "traits": {
+                "kind": "heart"
+              }
+            },
+            {
+              "id": "jealousy",
+              "name": "Jealousy",
+              "icon": "💚",
+              "image": "/img/motives/jealousy.jpg",
+              "focus": "50% 65%",
+              "traits": {
+                "kind": "heart"
+              }
+            },
+            {
+              "id": "blackmail",
+              "name": "Blackmail",
+              "icon": "✉️",
+              "image": "/img/motives/blackmail.jpg",
+              "focus": "50% 65%",
+              "traits": {
+                "kind": "secret"
+              }
+            }
+          ]
+        }
+      ],
+      "solution": {
+        "who": "clergyman",
+        "what": "champagne",
+        "why": "blackmail"
+      },
+      "clues": [
+        {
+          "public": true,
+          "text": "Mr. Finch says: “I brought the red wine. A decent Bordeaux, for once.”",
+          "rule": {
+            "says": "who:detective",
+            "that": {
+              "with": [
+                "who:detective",
+                "what:wine"
+              ]
+            }
+          }
+        },
+        {
+          "public": true,
+          "text": "Miss Fairfax says: “My reason? Jealousy, darling. He danced with everyone but me.”",
+          "rule": {
+            "says": "who:socialite",
+            "that": {
+              "with": [
+                "who:socialite",
+                "why:jealousy"
+              ]
+            }
+          }
+        },
+        {
+          "public": true,
+          "text": "Felix Tinker says: “Whoever brought the absinthe owes Crane money.”",
+          "rule": {
+            "says": "who:inventor",
+            "that": {
+              "with": [
+                "what:absinthe",
+                "why:debt"
+              ]
+            }
+          }
+        },
+        {
+          "public": true,
+          "text": "Percival Ashdown says: “I'm his nephew. If he dies, I inherit. I know how that looks.”",
+          "rule": {
+            "says": "who:poet",
+            "that": {
+              "with": [
+                "who:poet",
+                "why:inheritance"
+              ]
+            }
+          }
+        },
+        {
+          "public": true,
+          "text": "Reverend Hale says: “Miss Fairfax brought the champagne. I watched her pour it.”",
+          "rule": {
+            "says": "who:clergyman",
+            "that": {
+              "with": [
+                "who:socialite",
+                "what:champagne"
+              ]
+            }
+          }
+        },
+        {
+          "text": "Whoever holds a book in their portrait brought a drink that isn't green.",
+          "rule": {
+            "apart": [
+              {
+                "who": {
+                  "book": true
+                }
+              },
+              {
+                "what": {
+                  "color": "green"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "text": "The pumpkin punch was brought by someone holding feathers in their portrait.",
+          "rule": {
+            "with": [
+              "what:punch",
+              {
+                "who": {
+                  "feathers": true
+                }
+              }
+            ]
+          }
+        },
+        {
+          "text": "Nobody with grey or white hair is driven by jealousy.",
+          "rule": {
+            "apart": [
+              {
+                "who": {
+                  "greyHair": true
+                }
+              },
+              "why:jealousy"
+            ]
+          }
+        },
+        {
+          "text": "Whoever brought the absinthe has grey or white hair.",
+          "rule": {
+            "with": [
+              "what:absinthe",
+              {
+                "who": {
+                  "greyHair": true
+                }
+              }
+            ]
+          }
+        },
+        {
+          "release": 1,
+          "public": true,
+          "text": "Dr. Crane's glass was still fizzing when he fell. The poison was in something bubbly.",
+          "rule": {
+            "with": [
+              "culprit",
+              {
+                "what": {
+                  "bubbly": true
+                }
+              }
+            ]
+          }
+        },
+        {
+          "release": 1,
+          "text": "The Witches' Brew was not brought by anyone holding a book.",
+          "rule": {
+            "apart": [
+              "what:brew",
+              {
+                "who": {
+                  "book": true
+                }
+              }
+            ]
+          }
+        },
+        {
+          "release": 2,
+          "public": true,
+          "text": "Dr. Crane mumbles in his sleep: “It was never about money…”",
+          "rule": {
+            "apart": [
+              "culprit",
+              {
+                "why": {
+                  "kind": "money"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "text": "Nobody with grey or white hair brought the Witches’ Brew.",
+          "rule": {
+            "apart": [
+              {
+                "who": {
+                  "greyHair": true
+                }
+              },
+              "what:brew"
+            ]
+          },
+          "release": 2
+        },
+        {
+          "release": 3,
+          "public": true,
+          "text": "The butler tells two truths and one lie: “Mr. Finch brought the red wine.” “Miss Fairfax brought the champagne.” “Felix Tinker owes Crane money.”",
+          "rule": {
+            "exactly": 2,
+            "of": [
+              {
+                "with": [
+                  "who:detective",
+                  "what:wine"
+                ]
+              },
+              {
+                "with": [
+                  "who:socialite",
+                  "what:champagne"
+                ]
+              },
+              {
+                "with": [
+                  "who:inventor",
+                  "why:debt"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "release": 3,
+          "text": "Whoever brought the champagne has grey or white hair.",
+          "rule": {
+            "with": [
+              "what:champagne",
+              {
+                "who": {
+                  "greyHair": true
+                }
+              }
+            ]
+          }
+        },
+        {
+          "release": 4,
+          "public": true,
+          "text": "A single grey hair was found on the rim of Crane's glass.",
+          "rule": {
+            "with": [
+              "culprit",
+              {
+                "who": {
+                  "greyHair": true
+                }
+              }
+            ]
+          }
+        },
+        {
+          "release": 4,
+          "text": "The Reverend's motive is a secret that could ruin him.",
+          "rule": {
+            "with": [
+              "who:clergyman",
+              {
+                "why": {
+                  "kind": "secret"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "release": 5,
+          "public": true,
+          "text": "Dr. Crane wakes for a moment: “I knew a secret… someone paid me to keep quiet. Tonight I asked for more.”",
+          "rule": {
+            "with": [
+              "culprit",
+              "why:blackmail"
+            ]
+          }
+        },
+        {
+          "release": 6,
+          "public": true,
+          "text": "Beside the champagne flute lies a small silver cross on a broken chain.",
+          "rule": {
+            "and": [
+              {
+                "with": [
+                  "culprit",
+                  {
+                    "who": {
+                      "cross": true
+                    }
+                  }
+                ]
+              },
+              {
+                "with": [
+                  "culprit",
+                  "what:champagne"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "vault": true,
+          "text": "A letter Mr. Finch never sent: “Crane ruined my brother. Tonight, he pays.” Mr. Finch is driven by revenge.",
+          "rule": {
+            "with": [
+              "who:detective",
+              "why:revenge"
+            ]
+          }
+        }
+      ],
+      "solutionStory": "Dr. Crane knew the Reverend's secret: before he took holy orders, 'Josiah Hale' was a forger wanted in three counties. Crane had been blackmailing him for years, and tonight he demanded the church roof fund. During the toast the Reverend slipped foxglove into Crane's champagne."
+    },
+    {
+      "title": "The Stopped Clocks",
+      "question": "Who killed Mr. Vale, with what, and where?",
+      "intro": "Three o'clock. Every clock in Hollowmere stops at the same moment, and the lamps go dark. When the lights flicker back, Mr. Edmund Vale, the family solicitor, who was to read the old Lord's will at dawn, lies dead. Five guests were awake and alone in the far corners of the house. Each was in exactly one room with exactly one object. Only the killer lies. Study the portraits: some clues describe what you can see in them.",
+      "categories": [
+        {
+          "key": "who",
+          "label": "Suspect",
+          "traits": [
+            {
+              "key": "hand",
+              "label": "Writes with"
+            },
+            {
+              "key": "sign",
+              "label": "Star sign"
+            },
+            {
+              "key": "element",
+              "label": "Element"
+            },
+            {
+              "key": "gender",
+              "label": "Lady or gentleman",
+              "visual": true
+            },
+            {
+              "key": "hat",
+              "label": "Hat",
+              "visual": true
+            },
+            {
+              "key": "tool",
+              "label": "Tool in hand",
+              "visual": true
+            },
+            {
+              "key": "coat",
+              "label": "Overcoat",
+              "visual": true
+            }
+          ],
+          "options": [
+            {
+              "id": "governess",
+              "name": "Miss Prudence Vane",
+              "desc": "the governess",
+              "icon": "☕",
+              "image": "/img/governess.jpg",
+              "bio": "Raised two generations of Hollowmere children and knows where every one of them hid things. Takes her tea strong and her secrets stronger.",
+              "horoscope": "Silence is golden tonight. Guard it like gold.",
+              "traits": {
+                "hand": "right",
+                "sign": "♏ Scorpio",
+                "element": "Water",
+                "gender": "lady",
+                "hat": true,
+                "tool": false,
+                "coat": false
+              }
+            },
+            {
+              "id": "clockmaker",
+              "name": "Mrs. Lucia Navarro",
+              "desc": "the clockmaker",
+              "image": "/img/clockmaker.jpg",
+              "icon": "⏱️",
+              "bio": "Keeps the forty-one clocks of Hollowmere in time, and was the only one who could have stopped them all at once. Or so everyone keeps telling her.",
+              "horoscope": "Time is on your side, until suddenly it isn’t.",
+              "traits": {
+                "hand": "right",
+                "sign": "♒ Aquarius",
+                "element": "Air",
+                "gender": "lady",
+                "hat": false,
+                "tool": true,
+                "coat": false
+              }
+            },
+            {
+              "id": "captain",
+              "name": "Captain Rex Mortlake",
+              "desc": "the captain",
+              "icon": "⚓",
+              "image": "/img/captain.jpg",
+              "bio": "Sailed every sea and lost a fortune at cards in every port. Tells the same three stories, louder each time.",
+              "horoscope": "An old wager is about to be settled. Keep your cards close.",
+              "traits": {
+                "hand": "left",
+                "sign": "♐ Sagittarius",
+                "element": "Fire",
+                "gender": "gentleman",
+                "hat": true,
+                "tool": false,
+                "coat": true
+              }
+            },
+            {
+              "id": "sailor",
+              "name": "Kenji Mori",
+              "desc": "the sailor",
+              "image": "/img/sailor.jpg",
+              "icon": "⚓",
+              "bio": "First mate of the Hollowmere family's last merchant ship. Came ashore to collect wages nobody wants to pay him.",
+              "horoscope": "The tide turns in the small hours. Be ready to swim.",
+              "traits": {
+                "hand": "left",
+                "sign": "♓ Pisces",
+                "element": "Water",
+                "gender": "gentleman",
+                "hat": false,
+                "tool": false,
+                "coat": true
+              }
+            },
+            {
+              "id": "miner",
+              "name": "Tom Hadley",
+              "desc": "the miner",
+              "image": "/img/miner.jpg",
+              "icon": "⛏️",
+              "bio": "Walked up from the family's tin mine through the storm with a lump of ore and a grievance. Nobody has asked him which.",
+              "horoscope": "Dig too deep and the roof comes down. Dig just deep enough and you strike gold.",
+              "traits": {
+                "hand": "right",
+                "sign": "♈ Aries",
+                "element": "Fire",
+                "gender": "gentleman",
+                "hat": false,
+                "tool": true,
+                "coat": false
+              }
+            }
+          ]
+        },
+        {
+          "key": "what",
+          "label": "Weapon",
+          "traits": [
+            {
+              "key": "weight",
+              "label": "Weight"
+            },
+            {
+              "key": "sharp",
+              "label": "Sharp"
+            }
+          ],
+          "options": [
+            {
+              "id": "barometer",
+              "name": "Barometer",
+              "image": "/img/objects/barometer.jpg",
+              "icon": "🌡️",
+              "traits": {
+                "weight": "heavy",
+                "sharp": false
+              }
+            },
+            {
+              "id": "sextant",
+              "name": "Brass Sextant",
+              "image": "/img/objects/sextant.jpg",
+              "icon": "🧭",
+              "traits": {
+                "weight": "light",
+                "sharp": false
+              }
+            },
+            {
+              "id": "telephone",
+              "name": "Telephone",
+              "desc": "cord and all",
+              "image": "/img/objects/telephone.jpg",
+              "focus": "50% 40%",
+              "icon": "☎️",
+              "traits": {
+                "weight": "heavy",
+                "sharp": false
+              }
+            },
+            {
+              "id": "pen",
+              "name": "Fountain Pen",
+              "image": "/img/objects/pen.jpg",
+              "icon": "🖋️",
+              "traits": {
+                "weight": "light",
+                "sharp": true
+              }
+            },
+            {
+              "id": "handdrill",
+              "name": "Hand Drill",
+              "image": "/img/tools/handdrill.jpg",
+              "icon": "🔩",
+              "traits": {
+                "weight": "light",
+                "sharp": true
+              }
+            }
+          ]
+        },
+        {
+          "key": "where",
+          "label": "Room",
+          "traits": [
+            {
+              "key": "floor",
+              "label": "Floor"
+            },
+            {
+              "key": "windows",
+              "label": "Windows"
+            }
+          ],
+          "options": [
+            {
+              "id": "cellar",
+              "name": "Wine Cellar",
+              "image": "/img/rooms/cellar.jpg",
+              "focus": "50% 45%",
+              "icon": "🍷",
+              "traits": {
+                "floor": "below stairs",
+                "windows": false
+              }
+            },
+            {
+              "id": "engineroom",
+              "name": "Engine Room",
+              "image": "/img/rooms/engineroom.jpg",
+              "focus": "50% 45%",
+              "icon": "⚙️",
+              "traits": {
+                "floor": "below stairs",
+                "windows": false
+              }
+            },
+            {
+              "id": "solarium",
+              "name": "Solarium",
+              "image": "/img/rooms/solarium.jpg",
+              "focus": "50% 45%",
+              "icon": "🪴",
+              "traits": {
+                "floor": "ground",
+                "windows": true
+              }
+            },
+            {
+              "id": "garret",
+              "name": "Garret",
+              "image": "/img/rooms/garret.jpg",
+              "focus": "50% 45%",
+              "icon": "🕯️",
+              "traits": {
+                "floor": "upstairs",
+                "windows": true
+              }
+            },
+            {
+              "id": "archive",
+              "name": "Archive",
+              "image": "/img/rooms/archive.jpg",
+              "focus": "50% 45%",
+              "icon": "📜",
+              "traits": {
+                "floor": "upstairs",
+                "windows": false
+              }
+            }
+          ]
+        }
+      ],
+      "solution": {
+        "who": "governess",
+        "what": "telephone",
+        "where": "archive"
+      },
+      "clues": [
+        {
+          "public": true,
+          "text": "Miss Vane says: “I was down in the Wine Cellar, fetching a bottle for the Captain.”",
+          "rule": {
+            "says": "who:governess",
+            "that": {
+              "with": [
+                "who:governess",
+                "where:cellar"
+              ]
+            }
+          }
+        },
+        {
+          "public": true,
+          "text": "Captain Mortlake says: “Whoever had the barometer was below stairs.”",
+          "rule": {
+            "says": "who:captain",
+            "that": {
+              "with": [
+                "what:barometer",
+                {
+                  "where": {
+                    "floor": "below stairs"
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "public": true,
+          "text": "Mrs. Navarro says: “I was in the Engine Room, trying to get the great clock going again.”",
+          "rule": {
+            "says": "who:clockmaker",
+            "that": {
+              "with": [
+                "who:clockmaker",
+                "where:engineroom"
+              ]
+            }
+          }
+        },
+        {
+          "public": true,
+          "text": "Kenji Mori says: “Miss Vane had nothing sharp.”",
+          "rule": {
+            "says": "who:sailor",
+            "that": {
+              "apart": [
+                "who:governess",
+                {
+                  "what": {
+                    "sharp": true
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "public": true,
+          "text": "Tom Hadley says: “I never set foot upstairs.”",
+          "rule": {
+            "says": "who:miner",
+            "that": {
+              "apart": [
+                "who:miner",
+                {
+                  "where": {
+                    "floor": "upstairs"
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "text": "Nobody wearing a hat went below stairs.",
+          "rule": {
+            "apart": [
+              {
+                "who": {
+                  "hat": true
+                }
+              },
+              {
+                "where": {
+                  "floor": "below stairs"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "text": "Everyone holding a tool in their portrait was below stairs.",
+          "rule": {
+            "with": [
+              {
+                "who": {
+                  "tool": true
+                }
+              },
+              {
+                "where": {
+                  "floor": "below stairs"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "text": "The brass sextant was in a room with windows.",
+          "rule": {
+            "with": [
+              "what:sextant",
+              {
+                "where": {
+                  "windows": true
+                }
+              }
+            ]
+          }
+        },
+        {
+          "text": "The fountain pen never went upstairs.",
+          "rule": {
+            "apart": [
+              "what:pen",
+              {
+                "where": {
+                  "floor": "upstairs"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "release": 1,
+          "public": true,
+          "text": "The doctor: Mr. Vale was killed upstairs.",
+          "rule": {
+            "with": [
+              "murderer",
+              {
+                "where": {
+                  "floor": "upstairs"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "release": 1,
+          "text": "Nobody in an overcoat carried anything heavy.",
+          "rule": {
+            "apart": [
+              {
+                "who": {
+                  "coat": true
+                }
+              },
+              {
+                "what": {
+                  "weight": "heavy"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "release": 2,
+          "public": true,
+          "text": "There is not a scratch on the body. The weapon was not sharp.",
+          "rule": {
+            "with": [
+              "murderer",
+              {
+                "what": {
+                  "sharp": false
+                }
+              }
+            ]
+          }
+        },
+        {
+          "release": 2,
+          "text": "The barometer was found in the Wine Cellar.",
+          "rule": {
+            "with": [
+              "what:barometer",
+              "where:cellar"
+            ]
+          }
+        },
+        {
+          "release": 3,
+          "public": true,
+          "text": "The butler tells two truths and one lie: “The Captain was in the Solarium.” “Mrs. Navarro had the barometer.” “The hand drill was in the Engine Room.”",
+          "rule": {
+            "exactly": 2,
+            "of": [
+              {
+                "with": [
+                  "who:captain",
+                  "where:solarium"
+                ]
+              },
+              {
+                "with": [
+                  "who:clockmaker",
+                  "what:barometer"
+                ]
+              },
+              {
+                "with": [
+                  "what:handdrill",
+                  "where:engineroom"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "release": 3,
+          "text": "Whoever was in the Garret wore an overcoat.",
+          "rule": {
+            "with": [
+              "where:garret",
+              {
+                "who": {
+                  "coat": true
+                }
+              }
+            ]
+          }
+        },
+        {
+          "release": 4,
+          "public": true,
+          "text": "A maid saw a lady hurrying away from the scene in the dark.",
+          "rule": {
+            "with": [
+              "murderer",
+              {
+                "who": {
+                  "gender": "lady"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "release": 5,
+          "public": true,
+          "text": "In the Archive, the telephone has been torn from the wall, its cord missing.",
+          "rule": {
+            "and": [
+              {
+                "with": [
+                  "murderer",
+                  "where:archive"
+                ]
+              },
+              {
+                "with": [
+                  "murderer",
+                  "what:telephone"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "release": 6,
+          "public": true,
+          "text": "The astrologer has read the stars: the killer was born under a water sign.",
+          "rule": {
+            "with": [
+              "murderer",
+              {
+                "who": {
+                  "element": "Water"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "release": 2,
+          "text": "Everyone born under a fire sign stayed off the upper floors.",
+          "rule": {
+            "apart": [
+              {
+                "who": {
+                  "element": "Fire"
+                }
+              },
+              {
+                "where": {
+                  "floor": "upstairs"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "vault": true,
+          "text": "Kenji Mori's pocket log, a fresh entry: “Three o'clock. Watching the storm from the Garret window. Lights out all over the house.”",
+          "rule": {
+            "with": [
+              "who:sailor",
+              "where:garret"
+            ]
+          }
+        }
+      ],
+      "solutionStory": "Mr. Vale had found out that the old Lord's will was a forgery, and that the hand that forged it belonged to Miss Vane. When he crept up to the Archive to telephone the constable, she stopped every clock in the house to buy herself a dark minute, and strangled him with the telephone cord. At dawn the constable arrives, and thanks to you, all four culprits leave Hollowmere in handcuffs. Happy Halloween!"
+    }
+  ]
+}

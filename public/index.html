@@ -1,0 +1,521 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0d0a12">
+  <title>Hollowmere Mystery</title>
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    body { display: flex; flex-direction: column; }
+    main { flex: 1; }
+    header.top { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+    header.top .display { font-size: 1.4rem; margin: 0; flex: 1; }
+    .me-chip { text-align: right; font-size: .85rem; }
+    .me-chip b { color: var(--pumpkin); font-size: 1.1rem; }
+    .clock { font-weight: 800; color: var(--ghost); }
+    .hero { text-align: center; padding: 32px 8px 8px; }
+    .hero h1 { font-size: 2.6rem; }
+    .cat { margin-bottom: 18px; }
+    .cat h3 { font-size: 1rem; color: var(--muted); }
+    .history li { margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <h1 class="display" id="title">Hollowmere</h1>
+    <div class="me-chip" id="meChip"></div>
+  </header>
+  <main class="wrap" id="view"></main>
+  <div id="lightbox" hidden></div>
+  <nav class="tabs" id="tabs" hidden>
+    <button data-tab="case"><span class="ico">🕯️</span>Case<span class="dot"></span></button>
+    <button data-tab="clues"><span class="ico">🔍</span>Clues<span class="dot"></span></button>
+    <button data-tab="notes"><span class="ico">📓</span>Grid</button>
+    <button data-tab="vault"><span class="ico">🔐</span>Vault</button>
+    <button data-tab="accuse"><span class="ico">⚖️</span>Accuse</button>
+    <button data-tab="scores"><span class="ico">🏆</span>Scores</button>
+  </nav>
+
+  <script src="/common.js"></script>
+  <script>
+    // Who this tab plays as. sessionStorage is per tab, so several characters can be open
+    // side by side in one browser without taking each other over on reload.
+    // localStorage only remembers the last login, so a phone that closed its tab gets back in.
+    const TOKEN_KEY = 'homeriddle.token';
+    function saveToken(t) {
+      for (const store of [sessionStorage, localStorage]) {
+        try { t ? store.setItem(TOKEN_KEY, t) : store.removeItem(TOKEN_KEY); } catch {}
+      }
+    }
+    const params = new URLSearchParams(location.search);
+    if (params.get('t')) {
+      // Rejoin link from the host panel.
+      saveToken(params.get('t'));
+      history.replaceState(null, '', '/');
+    }
+    let token = null;
+    try { token = sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY); } catch {}
+    try { if (token) sessionStorage.setItem(TOKEN_KEY, token); } catch {}
+
+    let tab = 'case';
+    const flipped = new Set(); // character cards turned over
+    let dossierView = 'cards';
+    try { dossierView = localStorage.getItem('homeriddle.dossierView') || 'cards'; } catch {}
+    let picks = {}; // accusation selection: { categoryKey: optionId }
+    let seen = { caseIndex: null, hints: 0, cards: 0, phase: null, solvers: 0 };
+    const view = document.getElementById('view');
+    const tabs = document.getElementById('tabs');
+
+    // Full-screen portrait, so players can study the details clues refer to.
+    const lightbox = document.getElementById('lightbox');
+    function zoom(src) {
+      lightbox.innerHTML = `<img src="${esc(src)}" alt="">`;
+      lightbox.hidden = false;
+    }
+    lightbox.addEventListener('click', () => { lightbox.hidden = true; });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') lightbox.hidden = true; });
+
+    view.addEventListener('click', (e) => {
+      const z = e.target.closest('[data-zoom]');
+      if (z) { zoom(z.dataset.zoom); return; }
+      const card = e.target.closest('[data-flip]');
+      if (card) {
+        const key = card.dataset.flip;
+        if (flipped.has(key)) flipped.delete(key); else flipped.add(key);
+        card.classList.toggle('flipped');
+        return;
+      }
+      const v = e.target.closest('[data-view]');
+      if (v) {
+        dossierView = v.dataset.view;
+        try { localStorage.setItem('homeriddle.dossierView', dossierView); } catch {}
+        render();
+      }
+    });
+
+    tabs.addEventListener('click', (e) => {
+      const b = e.target.closest('button[data-tab]');
+      if (!b) return;
+      tab = b.dataset.tab;
+      render();
+      window.scrollTo(0, 0);
+    });
+
+    // Several loads can be in flight at once (server pushes, joining, tab focus).
+    // Only apply the newest one, and only if it was asked with the current token;
+    // otherwise a stale "you are nobody" answer would log the player out.
+    let lastRequested = 0;
+    async function load() {
+      const seq = ++lastRequested;
+      const sentToken = token;
+      const s = await Game.api('/api/state', { headers: sentToken ? { 'X-Player-Token': sentToken } : {} });
+      if (seq !== lastRequested || sentToken !== token) return Game.state;
+      if (token && !s.me) {
+        // Removed by host or the game was wiped.
+        // Only forget the shared login if it is this one; another tab may have logged in since.
+        try { if (localStorage.getItem(TOKEN_KEY) === token) localStorage.removeItem(TOKEN_KEY); } catch {}
+        try { sessionStorage.removeItem(TOKEN_KEY); } catch {}
+        token = null;
+      }
+      Game.offset = s.serverNow - Date.now();
+      if (!Game.isNew(s)) return s;
+      Game.state = s;
+      notify(s);
+      render();
+      return s;
+    }
+
+    // Toasts + vibration for things that just happened.
+    function notify(s) {
+      const c = s.case;
+      if (!s.me) return;
+      if (seen.me !== s.me.id) {
+        // A different player in this tab: start fresh instead of toasting their clues as new.
+        picks = {};
+        flipped.clear();
+        seen = { me: s.me.id, caseIndex: s.caseIndex, hints: c ? c.updates.length : 0, cards: s.me.cards.length, phase: s.phase, solvers: c ? c.solvers.length : 0 };
+        return;
+      }
+      if (!c) {
+        seen = { me: s.me.id, caseIndex: s.caseIndex, hints: 0, cards: 0, phase: s.phase, solvers: 0 };
+        return;
+      }
+      if (seen.caseIndex !== null) {
+        if (seen.caseIndex !== s.caseIndex || (seen.phase === 'lobby' && s.phase === 'active')) {
+          toast(`🕯️ A new case: ${c.title}`);
+          picks = {};
+          markUnread('case', 'clues');
+        } else {
+          if (c.updates.length > seen.hints) {
+            const u = c.updates[c.updates.length - 1];
+            toast(`Update ${u.number}: ${u.clues[0] || 'new secret evidence is out there…'}`);
+            markUnread('case');
+            navigator.vibrate?.(200);
+          }
+          if (s.me.cards.length > seen.cards) {
+            toast('🔍 You received NEW secret evidence!', 'good');
+            markUnread('clues');
+            navigator.vibrate?.([200, 100, 200]);
+          }
+          if (c.solvers.length > seen.solvers && seen.solvers === 0) {
+            toast(`⚡ ${c.solvers[0].name} solved the case!`, 'bad');
+          }
+          if (s.phase === 'revealed' && seen.phase !== 'revealed') toast('📜 The truth is revealed!');
+        }
+      }
+      seen = { me: s.me.id, caseIndex: s.caseIndex, hints: c.updates.length, cards: s.me.cards.length, phase: s.phase, solvers: c.solvers.length };
+    }
+
+    function markUnread(...names) {
+      for (const n of names) if (n !== tab) tabs.querySelector(`[data-tab="${n}"]`).classList.add('unread');
+    }
+
+    function render() {
+      const s = Game.state;
+      if (!s) return;
+      document.getElementById('title').textContent = s.title;
+      document.title = s.title;
+      const me = s.me;
+      tabs.hidden = !me;
+      document.getElementById('meChip').innerHTML = me
+        ? `${esc(me.name)} · #${me.rank}<br><b>${me.score}</b> pts${me.vaultPending ? ' <small title="Vault points, secret until the case is revealed">🔐</small>' : ''}` : '';
+      if (!me) return renderJoin(s);
+      for (const b of tabs.querySelectorAll('button')) {
+        b.classList.toggle('active', b.dataset.tab === tab);
+        if (b.dataset.tab === tab) b.classList.remove('unread');
+      }
+      // Don't redraw under a player who is typing a vault combination.
+      if (tab === 'vault' && document.activeElement && document.activeElement.id === 'vaultCode') return;
+      ({ case: renderCase, clues: renderClues, notes: renderNotes, vault: renderVault, accuse: renderAccuse, scores: renderScores })[tab](s);
+    }
+
+    function renderJoin(s) {
+      if (document.getElementById('joinForm')) return; // keep typed input
+      view.innerHTML = `
+        <div class="hero">
+          <h1 class="display">${esc(s.title)}</h1>
+          <p class="muted">${esc(s.tagline || '')}</p>
+        </div>
+        <form class="card" id="joinForm">
+          <label for="name">Your name</label>
+          <input id="name" maxlength="24" autocomplete="nickname" required placeholder="e.g. Ada">
+          <p class="error" id="joinErr"></p>
+          <button style="width:100%">Enter the manor 🕯️</button>
+        </form>
+        <p class="muted" style="text-align:center">${esc(s.prologue || '')}</p>`;
+      document.getElementById('joinForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const err = document.getElementById('joinErr');
+        err.textContent = '';
+        try {
+          const r = await Game.api('/api/join', {
+            method: 'POST',
+            body: { name: document.getElementById('name').value },
+          });
+          token = r.token;
+          saveToken(token);
+          tab = 'case';
+          await load();
+        } catch (ex) {
+          err.textContent = ex.message;
+        }
+      });
+    }
+
+    function renderCase(s) {
+      const c = s.case;
+      if (!c) {
+        view.innerHTML = `
+          <div class="hero"><h1 class="display">Welcome, ${esc(s.me.name)}</h1></div>
+          <div class="card"><p>${esc(s.prologue || '')}</p>
+          <p class="muted">Waiting for the host to open the first case. Grab a drink and size up the other guests…</p></div>
+          ${rulesHtml(s)}`;
+        return;
+      }
+      const sol = c.solution;
+      view.innerHTML = `
+        <p class="row"><span class="pill">Case ${s.caseIndex + 1} of ${s.caseCount}</span><span class="spacer"></span>
+          <span class="clock" data-clock></span></p>
+        <h2 class="display" style="font-size:2rem">${esc(c.title)}</h2>
+        ${phaseBanner(s)}
+        ${sol ? `<div class="card"><h3>The solution</h3><p><b>${esc(sol.summary)}</b></p><p>${esc(sol.story)}</p></div>` : ''}
+        <div class="card"><p style="margin-top:0">${esc(c.intro)}</p><p style="margin-bottom:0"><b>${esc(c.question)}</b></p></div>
+        ${c.updates.length ? `<h3>New evidence <small>(${c.updates.length} of ${c.totalUpdates} updates)</small></h3>
+          <ol class="hints">${c.updates.slice().reverse().map((u) => updateHtml(u, s.me.name)).join('')}</ol>` : ''}
+        ${c.facts.length ? `<div class="card"><h3>Case file</h3><ul class="facts">${c.facts.map((t) => `<li>${esc(t)}</li>`).join('')}</ul></div>` : ''}
+        <div class="row" style="margin-top:22px"><h3 style="margin:0">Suspects &amp; evidence</h3><span class="spacer"></span>
+          <div class="view-toggle" role="group" aria-label="Show as">
+            <button data-view="cards" class="${dossierView === 'cards' ? 'on' : ''}">Cards</button>
+            <button data-view="table" class="${dossierView === 'table' ? 'on' : ''}">Table</button>
+          </div></div>
+        ${dossierView === 'cards'
+          ? `<p class="muted" style="margin:6px 0 0">Tap a card to turn it over.</p>${characterCardsHtml(c.categories, flipped, s.caseIndex)}`
+          : `<div class="card scroll" style="margin-top:12px">${dossierHtml(c.categories)}</div>`}
+        ${s.phase === 'finished' ? `<div class="card"><h3>Final standings</h3>${leaderboardHtml(s.leaderboard, { meId: s.me.id })}</div>` : ''}`;
+      tickClocks();
+    }
+
+    function phaseBanner(s) {
+      const c = s.case;
+      if (s.me.solved && (s.phase === 'active' || s.phase === 'lastcall')) {
+        return `<div class="banner solved">You cracked it! Keep your poker face…</div>`;
+      }
+      if (s.phase === 'lastcall') {
+        return `<div class="banner alert">${esc(c.solvers[0]?.name)} solved it! Last call for half points.</div>`;
+      }
+      if (s.phase === 'revealed') return `<div class="banner info">Case closed. Waiting for the next mystery…</div>`;
+      if (s.phase === 'finished') return `<div class="banner info">🎃 The night is over. Thanks for playing!</div>`;
+      return '';
+    }
+
+    function renderClues(s) {
+      const cards = s.me.cards;
+      view.innerHTML = `
+        <h2 class="display" style="font-size:2rem">Your secret clues</h2>
+        <p class="muted">Only you can see these. Others hold different pieces, and more secret evidence is handed out as the night goes on. Share them, or don't. Trade wisely.</p>
+        ${cards.length ? cards.slice().reverse().map((x) => `<div class="card clue${x.vault ? ' golden' : ''}">${x.vault ? '<span class="pill" style="float:right">🔐 From the vault</span>' : x.release ? `<span class="pill" style="float:right">Update ${x.release}</span>` : ''}${esc(x.text)}</div>`).join('')
+          : '<div class="card muted">Your clues appear when a case begins.</div>'}`;
+    }
+
+    // Murdle-style deduction grid, one per pair of categories. Tap a cell to cycle
+    // blank → ✗ → ✓. A ✓ crosses out the rest of its row and column. Stored on this phone only.
+    function notesKey(s) { return `homeriddle.grid.${s.me.id}.${s.caseIndex}.${s.case.title}`; }
+    function getNotes(s) { try { return JSON.parse(localStorage.getItem(notesKey(s))) || {}; } catch { return {}; } }
+    function setNotes(s, n) { try { localStorage.setItem(notesKey(s), JSON.stringify(n)); } catch {} }
+    const cellKey = (a, i, b, j) => `${a}:${i}|${b}:${j}`;
+
+    function gridHtml(c, notes, a, b) {
+      const A = c.categories[a], B = c.categories[b];
+      return `<div class="grid-wrap"><table class="grid">
+        <tr><th class="corner">${esc(A.label)} × ${esc(B.label)}</th>${B.options.map((o) => `<th class="colhead"><span>${esc(o.name)}</span></th>`).join('')}</tr>
+        ${A.options.map((oa, i) => `<tr><th class="rowhead">${esc(oa.name)}</th>${B.options.map((ob, j) => {
+          const v = notes[cellKey(a, i, b, j)] || '';
+          return `<td><button class="${v}" data-cell="${a},${i},${b},${j}" aria-label="${esc(oa.name)} and ${esc(ob.name)}">${v === 'x' ? '✗' : v === 'o' ? '✓' : ''}</button></td>`;
+        }).join('')}</tr>`).join('')}
+      </table></div>`;
+    }
+
+    function renderNotes(s) {
+      const c = s.case;
+      if (!c) { view.innerHTML = '<div class="card muted">Your detective notebook opens when a case begins.</div>'; return; }
+      const notes = getNotes(s);
+      const pairs = [];
+      for (let a = 0; a < c.categories.length; a++) for (let b = a + 1; b < c.categories.length; b++) pairs.push([a, b]);
+      view.innerHTML = `
+        <h2 class="display" style="font-size:2rem">Deduction grid</h2>
+        <p class="muted">Each suspect had exactly one of everything. Tap a box once for ✗, twice for ✓ (which crosses out the rest of the row and column), three times to clear.</p>
+        ${pairs.map(([a, b]) => gridHtml(c, notes, a, b)).join('')}
+        <button class="secondary small" id="clearGrid">Clear grid</button>`;
+      view.querySelectorAll('[data-cell]').forEach((btn) => btn.addEventListener('click', () => {
+        const [a, i, b, j] = btn.dataset.cell.split(',').map(Number);
+        const n = getNotes(s);
+        const k = cellKey(a, i, b, j);
+        const next = { '': 'x', x: 'o', o: '' }[n[k] || ''];
+        if (next) n[k] = next; else delete n[k];
+        if (next === 'o') {
+          c.categories[b].options.forEach((_, jj) => { if (jj !== j && !n[cellKey(a, i, b, jj)]) n[cellKey(a, i, b, jj)] = 'x'; });
+          c.categories[a].options.forEach((_, ii) => { if (ii !== i && !n[cellKey(a, ii, b, j)]) n[cellKey(a, ii, b, j)] = 'x'; });
+        }
+        setNotes(s, n);
+        renderNotes(s);
+      }));
+      document.getElementById('clearGrid').addEventListener('click', () => {
+        if (confirm('Clear your whole grid?')) { setNotes(s, {}); renderNotes(s); }
+      });
+    }
+
+    function renderAccuse(s) {
+      const c = s.case;
+      const me = s.me;
+      if (!c) { view.innerHTML = '<div class="card muted">No case is open yet.</div>'; return; }
+      const open = s.phase === 'active' || s.phase === 'lastcall';
+      const max = s.rules.maxWrongAccusationsPerCase;
+      const left = me.accusationsLeft;
+      const history = me.accusations.map((a) => {
+        const names = c.categories.map((cat) => cat.options.find((o) => o.id === a.answer[cat.key])?.name).join(' · ');
+        const verdict = a.correct ? '✅' : '❌';
+        return `<li>${verdict} ${esc(names)} <small>(${a.points > 0 ? '+' : ''}${a.points}${a.forgiven ? ', try given back by the host' : ''})</small></li>`;
+      }).join('');
+      let status = '';
+      if (me.solved) status = '<div class="banner solved">You solved this case! 🎉</div>';
+      else if (!open) status = '<div class="banner info">Accusations are closed for this case.</div>';
+      else if (left === 0) status = `<div class="banner alert">You have used all ${max} tries for this case. You can't accuse again until the next case, but you can still help others… for a price.</div>`;
+
+      // The tries counter: one dot per try, filled while it is still available.
+      const tries = max && open && !me.solved && left > 0 ? `
+        <div class="card tries">
+          <div class="row"><b>${left} of ${max} ${max === 1 ? 'try' : 'tries'} left</b><span class="spacer"></span>
+            <span class="try-dots">${Array.from({ length: max }, (_, i) => `<span class="try-dot ${i < left ? 'on' : ''}"></span>`).join('')}</span></div>
+          <p style="margin:8px 0 0">You get <b>${max} tries per case</b>. Each wrong accusation uses one up, costs
+            <b>${s.rules.scoring.wrongPenalty} points</b> and locks you out for ${Math.round(s.rules.wrongCooldownSeconds / 60 * 10) / 10} minutes.
+            All three parts must be right. ${left === 1 ? '<b>This is your last try.</b>' : 'Only accuse when you are sure.'}</p>
+        </div>` : '';
+
+      const canAccuse = open && !me.solved && left !== 0;
+      const label = left != null ? `Accuse! (${left} ${left === 1 ? 'try' : 'tries'} left)` : 'Accuse!';
+      view.innerHTML = `
+        <h2 class="display" style="font-size:2rem">Make an accusation</h2>
+        ${status}
+        ${tries}
+        ${canAccuse ? `
+          ${c.categories.map((cat) => `
+            <div class="cat"><h3>${esc(cat.label)}</h3><div class="chips">
+              ${cat.options.map((o) => `<button class="chip ${picks[cat.key] === o.id ? 'selected' : ''}" data-cat="${esc(cat.key)}" data-opt="${esc(o.id)}">
+                ${esc(o.name)}${o.desc ? `<small>${esc(o.desc)}</small>` : ''}</button>`).join('')}
+            </div></div>`).join('')}
+          <p class="error" id="accErr"></p>
+          <button id="accuseBtn" style="width:100%" data-cooldown data-label="${esc(label)}">${esc(label)}</button>` : ''}
+        ${history ? `<h3>Your accusations</h3><ul class="history">${history}</ul>` : ''}`;
+      view.querySelectorAll('[data-cat]').forEach((b) => b.addEventListener('click', () => {
+        picks[b.dataset.cat] = b.dataset.opt;
+        renderAccuse(s);
+      }));
+      const btn = document.getElementById('accuseBtn');
+      if (btn) btn.addEventListener('click', async () => {
+        const err = document.getElementById('accErr');
+        if (c.categories.some((cat) => !picks[cat.key])) { err.textContent = 'Pick one answer in every row.'; return; }
+        const summary = c.categories.map((cat) => cat.options.find((o) => o.id === picks[cat.key]).name).join(', ');
+        const risk = left == null ? `If you're wrong, you lose ${s.rules.scoring.wrongPenalty} points.`
+          : left === 1 ? `This is your LAST try for this case. If you're wrong, you lose ${s.rules.scoring.wrongPenalty} points and can't accuse again until the next case.`
+          : `If you're wrong, you lose ${s.rules.scoring.wrongPenalty} points and have ${left - 1} of ${max} tries left.`;
+        if (!confirm(`Accuse: ${summary}?\n\n${risk}`)) return;
+        btn.disabled = true;
+        try {
+          const r = await Game.api('/api/accuse', { method: 'POST', body: { answer: picks }, headers: { 'X-Player-Token': token } });
+          if (r.correct) toast(`🎉 Correct! +${r.points} points`, 'good');
+          else {
+            const after = left == null ? '' : left - 1 > 0 ? ` ${left - 1} of ${max} tries left.` : ' No tries left for this case.';
+            toast(`❌ Wrong! ${r.points} points.${after}`, 'bad');
+            navigator.vibrate?.([100, 60, 100]);
+          }
+          await load();
+        } catch (ex) {
+          err.textContent = ex.message;
+          btn.disabled = false;
+        }
+      });
+      tickClocks();
+    }
+
+    // The vault: guess its 4-digit code. Feedback is private: 🟢 right digit in the right
+    // place, 🟡 right digit in the wrong place. What's inside is never described up front.
+    let vaultDraft = '';
+    function renderVault(s) {
+      const c = s.case;
+      const v = s.me.vault;
+      const open = s.phase === 'active' || s.phase === 'lastcall';
+      const wordle = v.style === 'wordle';
+      const DOT = { g: '🟢', y: '🟡', x: '⚫' };
+      // Mastermind: sorted counts that don't line up with the digits.
+      // Wordle: one mark under each digit.
+      const tries = v.guesses.slice().reverse().map((g) => {
+        const opened = g.exact === 4 ? ` <b>Opened! +${g.points}</b>` : '';
+        if (wordle && g.marks) {
+          return `<li><span class="tiles">${[...g.guess].map((d, i) => `<span class="tile ${g.marks[i]}">${esc(d)}</span>`).join('')}</span>${opened}</li>`;
+        }
+        return `<li><span class="code">${esc(g.guess)}</span>
+          <span class="fb">${'🟢'.repeat(g.exact)}${'🟡'.repeat(g.near)}${'⚫'.repeat(4 - g.exact - g.near)}</span>${opened}</li>`;
+      }).join('');
+      const howTo = wordle
+        ? `<p class="howto"><b>This case's lock shows every digit.</b> Each digit of your try gets its own colour:
+            🟢 right digit, right place · 🟡 in the code, but somewhere else · ⚫ not in the code.</p>`
+        : `<p class="howto"><b>This case's lock only counts.</b> After each try you get one dot per digit:
+            🟢 a digit is right and in the right place, 🟡 a digit is in the code but in the wrong place,
+            ⚫ a digit isn't in the code. <b>The dots don't follow the order of your digits</b>: greens come first,
+            then yellows, then greys. 🟢⚫⚫⚫ means one of your four digits is spot on, but not which one.</p>`;
+      let body;
+      if (!s.vault.on) body = '<div class="card muted">The vault is sealed tonight.</div>';
+      else if (!c || !open) body = '<div class="card muted">The vault is locked tight until a case is underway.</div>';
+      else if (v.opened) body = `<div class="banner solved">🔓 You cracked this case's vault!${s.me.vaultPending ? ' Your points stay off the leaderboard until the case is revealed, so nobody can tell.' : ''}</div>`;
+      else body = `
+        <form class="card" id="vaultForm">
+          <label for="vaultCode">Combination</label>
+          <input id="vaultCode" class="vault-input" inputmode="numeric" autocomplete="off" maxlength="4" placeholder="····" value="${esc(vaultDraft)}">
+          <p class="error" id="vaultErr"></p>
+          <button style="width:100%" data-vault-cooldown>Try the combination 🔐</button>
+        </form>`;
+      view.innerHTML = `
+        <h2 class="display" style="font-size:2rem">The Vault</h2>
+        <p class="muted">Somewhere in the manor stands an old strongbox with a new combination every case:
+          <b>4 different digits</b>. Crack it for points, and perhaps more. One try every ${v.cooldownSeconds >= 60 ? `${Math.round(v.cooldownSeconds / 6) / 10} minute${v.cooldownSeconds === 60 ? '' : 's'}` : `${v.cooldownSeconds} seconds`}.
+          Your tries are yours alone. Share them, or don't.</p>
+        ${s.vault.on && c && open ? howTo : ''}
+        ${body}
+        ${tries ? `<h3>Your tries</h3><ul class="vault-history">${tries}</ul>` : ''}`;
+      const form = document.getElementById('vaultForm');
+      if (!form) return;
+      const input = document.getElementById('vaultCode');
+      input.addEventListener('input', () => {
+        input.value = input.value.replace(/\D/g, '').slice(0, 4);
+        vaultDraft = input.value;
+      });
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const err = document.getElementById('vaultErr');
+        const guess = input.value;
+        if (!/^\d{4}$/.test(guess) || new Set(guess).size !== 4) { err.textContent = 'Enter 4 different digits.'; return; }
+        const btn = form.querySelector('button');
+        btn.disabled = true;
+        try {
+          const r = await Game.api('/api/vault', { method: 'POST', body: { guess }, headers: { 'X-Player-Token': token } });
+          vaultDraft = '';
+          if (r.exact === 4) {
+            toast(r.found ? `🔓 You cracked the vault! +${r.points} points. Something was inside: check your Clues tab.` : `🔓 You cracked the vault! +${r.points} points.`, 'good');
+            navigator.vibrate?.([200, 100, 200, 100, 400]);
+          }
+          document.activeElement.blur();
+          await load();
+          renderVault(Game.state);
+        } catch (ex) {
+          err.textContent = ex.message;
+          btn.disabled = false;
+        }
+      });
+      tickClocks();
+    }
+
+    function renderScores(s) {
+      view.innerHTML = `
+        <h2 class="display" style="font-size:2rem">Leaderboard</h2>
+        ${s.me.vaultPending ? `<div class="banner info">🔐 Your +${s.me.vaultPending} vault points are secret for now: they join the leaderboard when the case is revealed.</div>` : ''}
+        <div class="card">${leaderboardHtml(s.leaderboard, { meId: s.me.id })}</div>
+        ${rulesHtml(s)}`;
+    }
+
+    function rulesHtml(s) {
+      const r = s.rules, sc = r.scoring;
+      return `<div class="card"><h3>How it works</h3><ul style="padding-left:1.2em;margin:0">
+        <li>Each suspect had exactly one weapon and was in exactly one place. Use the <b>deduction grid</b>.</li>
+        <li>Each case starts with a public case file and <b>secret clues</b> for each of you. Others hold the rest.</li>
+        <li>Every ${r.updateIntervalMinutes} minutes there's an <b>update</b>: new public evidence, and new secret evidence for a few named guests. Find them!</li>
+        <li>Correct answer: <b>${sc.correctBase}</b> points, minus ${sc.perUpdatePenalty} per update so far (min ${sc.minCorrect}).
+          First solver gets <b>+${sc.firstSolverBonus}</b>.</li>
+        <li>After the first solve you have ${r.lastCallMinutes} minutes of last call at ${sc.lastCallMultiplier * 100}% points.</li>
+        <li>${r.maxWrongAccusationsPerCase ? `You get <b>${r.maxWrongAccusationsPerCase} tries per case</b>. Each wrong accusation uses one up and costs ${sc.wrongPenalty} points.` : `A wrong accusation costs ${sc.wrongPenalty} points.`}</li>
+      </ul></div>`;
+    }
+
+    function tickClocks() {
+      const s = Game.state;
+      if (!s || !s.me) return;
+      document.querySelectorAll('[data-clock]').forEach((el) => { el.textContent = updateClock(s.case, s.phase); });
+      const vb = document.querySelector('[data-vault-cooldown]');
+      if (vb) {
+        const left = s.me.vault.nextTryAt - Game.now();
+        vb.disabled = left > 0;
+        vb.textContent = left > 0 ? `The tumblers are settling… ${fmtCountdown(left)}` : 'Try the combination 🔐';
+      }
+      const btn = document.querySelector('[data-cooldown]');
+      if (btn) {
+        const left = s.me.cooldownUntil - Game.now();
+        btn.disabled = left > 0;
+        btn.textContent = left > 0 ? `Cooling down… ${fmtCountdown(left)}` : btn.dataset.label;
+      }
+    }
+    setInterval(tickClocks, 1000);
+
+    Game.live(load);
+  </script>
+</body>
+</html>

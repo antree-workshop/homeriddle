@@ -1,0 +1,15 @@
+{
+  "name": "homeriddle",
+  "version": "1.0.0",
+  "description": "A Halloween house-party murder mystery game: secret clues, timed hints, live leaderboard.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node verify.js && node test.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT",
+  "private": true
+}

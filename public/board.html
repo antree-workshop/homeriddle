@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mystery Board</title>
+  <link rel="stylesheet" href="/style.css">
+  <!-- qrcodejs 1.0.0 (MIT), served locally so the QR codes work without internet. -->
+  <script src="/vendor/qrcode.min.js"></script>
+  <style>
+    body { font-size: clamp(16px, 1.3vw, 26px); overflow: hidden; }
+    .board { display: grid; grid-template-columns: 1.6fr 1fr; gap: 1.5vw; padding: 1.5vw; height: 100vh; }
+    .col { display: flex; flex-direction: column; gap: 1.2vw; min-height: 0; }
+    .card { margin: 0; }
+    h1.display { font-size: 3.4em; margin: 0; }
+    .clock-big { font-size: 3.6em; font-weight: 800; color: var(--ghost); font-variant-numeric: tabular-nums; line-height: 1; }
+    .hints-wrap { flex: 1; min-height: 0; overflow: hidden; }
+    /* Fade the edges while the list is longer than the screen, so it reads as scrolling. */
+    .hints-wrap.scrolls { mask-image: linear-gradient(transparent, #000 1.2em, #000 calc(100% - 2.5em), transparent); }
+    .hints-wrap > :last-child { margin-bottom: 1.5em; }
+    .clock-card { padding-top: .6em; padding-bottom: .6em; }
+    .clock-card .clock-big { font-size: 2.4em; }
+    .hints li { font-size: 1.1em; }
+    .hints-wrap .facts li { font-size: 1em; }
+    .join { display: flex; gap: 1em; align-items: center; }
+    .qr { background: #fff; padding: 8px; border-radius: 10px; line-height: 0; }
+    .qr img, .qr canvas { width: 9em; height: 9em; }
+    .join-steps { display: flex; gap: 3vw; justify-content: center; }
+    .join .step { font-size: .8em; font-weight: 800; color: var(--pumpkin); letter-spacing: .06em; text-transform: uppercase; }
+    .wifi-pass { font-family: ui-monospace, monospace; }
+    .join.small .qr img, .join.small .qr canvas { width: 6.5em; height: 6.5em; }
+    /* During play: the Wi-Fi and game codes side by side, text under each, so the
+       leaderboard keeps most of the column. */
+    .join-card { flex-shrink: 0; display: flex; gap: 1em; }
+    .join-card .join { flex: 1; min-width: 0; flex-direction: column; align-items: flex-start; gap: .5em; font-size: .85em; }
+    .join-card .join > div:last-child { text-align: left !important; }
+    .join-url { font-weight: 800; font-size: 1.15em; word-break: break-all; }
+    .lb { flex: 1; min-height: 0; overflow: hidden; }
+    .lb .leaderboard li { font-size: 1em; padding-top: .3em; padding-bottom: .3em; }
+    .lb h2 { margin: 0 0 .3em; }
+    .lobby {
+      height: 100vh; padding: 3vh 3vw; text-align: center;
+      display: flex; flex-direction: column; align-items: center; justify-content: space-evenly; gap: 2vh;
+    }
+    .lobby h1 { font-size: min(5.5em, 10vh); line-height: 1; margin: 0; }
+    .lobby .tagline { font-size: min(1.4em, 3vh); margin: .4em 0 0; color: var(--muted); }
+    .lobby .qr img, .lobby .qr canvas { width: 18vh; height: 18vh; }
+    .cast { display: flex; gap: 1.5vw; justify-content: center; }
+    .cast figure { margin: 0; width: 17vh; }
+    /* Same cut as the phone cards: down to the hands. */
+    .cast img, .cast .noimg {
+      width: 100%; aspect-ratio: 272 / 540; object-fit: cover; object-position: 50% 0; display: grid; place-items: center;
+      border-radius: 10px; border: 1px solid #6b4f2a; font-size: 3em; background: var(--card);
+    }
+    .cast figcaption { font-size: min(.85em, 2.2vh); font-weight: 700; margin-top: .4em; }
+    .cast figcaption small { display: block; font-weight: 400; }
+    .overlay .cast figure { width: 13vh; }
+    .names { display: flex; flex-wrap: wrap; gap: .4em; max-width: 50vw; margin-top: .6em; }
+    .overlay {
+      position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; text-align: center;
+      background: #0d0a12f2; padding: 6vw; animation: fade .6s;
+    }
+    .overlay .kicker { font: 800 1.4em Inter, sans-serif; letter-spacing: .3em; color: var(--ghost); }
+    .overlay .big { font-size: 2.6em; font-weight: 800; max-width: 40ch; margin: .5em auto 0; }
+    .overlay h1 { font-size: 6em; }
+    #vaultAlert {
+      position: fixed; top: 2vh; left: 50%; transform: translateX(-50%); z-index: 30;
+      padding: .6em 1.4em; border-radius: 999px; font-weight: 800; font-size: 1.3em;
+      background: #1a1222f2; border: 2px solid #c9a24a; color: #f3d38a; box-shadow: 0 0 30px #c9a24a55;
+      animation: vaultPulse 1s ease-in-out infinite alternate;
+    }
+    @keyframes vaultPulse { from { box-shadow: 0 0 10px #c9a24a33; } to { box-shadow: 0 0 40px #c9a24a99; } }
+    @keyframes fade { from { opacity: 0; transform: scale(1.04); } }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <div id="overlay"></div>
+  <div id="vaultAlert" hidden>🔐 Someone is trying to crack the vault…</div>
+  <script src="/common.js"></script>
+  <script>
+    const root = document.getElementById('root');
+    const overlayEl = document.getElementById('overlay');
+    let seen = null;
+    let overlayTimer = null;
+
+    // The server lists home-network addresses first, so the QR code works for guests even
+    // when the TV opened this page via localhost or a VPN name.
+    function joinUrl(s) {
+      return s.joinUrls[0] || `${location.origin}/`;
+    }
+
+    // Standard Wi-Fi QR code: phone cameras offer "Join network" when they scan it.
+    function wifiQrText(w) {
+      const q = (x) => x.replace(/([\\;,:"])/g, '\\$1');
+      return w.password ? `WIFI:T:WPA;S:${q(w.ssid)};P:${q(w.password)};;` : `WIFI:T:nopass;S:${q(w.ssid)};;`;
+    }
+
+    function drawQrs() {
+      for (const el of document.querySelectorAll('[data-qr]')) {
+        if (typeof QRCode === 'undefined') { el.remove(); continue; } // offline: show the text only
+        new QRCode(el, { text: el.dataset.qr, width: 512, height: 512, correctLevel: QRCode.CorrectLevel.M });
+      }
+    }
+
+    // ① join the Wi-Fi (if the host set it up), ② open the game.
+    function joinHtml(s, url, small) {
+      const w = s.wifi;
+      const wifi = w ? `<div class="join${small ? ' small' : ''}"><div class="qr" data-qr="${esc(wifiQrText(w))}"></div>
+        <div style="text-align:left"><div class="step">① Join the Wi-Fi</div><div class="join-url">${esc(w.ssid)}</div>
+          ${w.password ? `<div class="muted">Password <span class="wifi-pass">${esc(w.password)}</span></div>` : ''}</div></div>` : '';
+      const game = `<div class="join${small ? ' small' : ''}"><div class="qr" data-qr="${esc(url)}"></div>
+        <div style="text-align:left"><div class="step">${w ? '② ' : ''}${small ? 'Late? Join the game' : 'Open the game'}</div><div class="join-url">${esc(url)}</div></div></div>`;
+      return wifi + game;
+    }
+
+    function showOverlay(html, ms = 12000) {
+      overlayEl.innerHTML = `<div class="overlay">${html}</div>`;
+      clearTimeout(overlayTimer);
+      overlayTimer = setTimeout(() => { overlayEl.innerHTML = ''; }, ms);
+    }
+
+    let vaultAlertTimer = null;
+    function showVaultAlert() {
+      const el = document.getElementById('vaultAlert');
+      el.hidden = false;
+      clearTimeout(vaultAlertTimer);
+      vaultAlertTimer = setTimeout(() => { el.hidden = true; }, 7000);
+    }
+
+    function detectEvents(s) {
+      const c = s.case;
+      const now = { caseIndex: s.caseIndex, phase: s.phase, updates: c ? c.updates.length : 0, solvers: c ? c.solvers.length : 0, vaultTry: s.vault.lastAttemptAt };
+      // Somebody tried the vault: say so, never who. Whether it opened stays secret too.
+      if (seen && now.vaultTry > seen.vaultTry) showVaultAlert();
+      if (seen) {
+        if (c && (now.caseIndex !== seen.caseIndex || (seen.phase === 'lobby' && s.phase === 'active'))) {
+          scrollToTop();
+          showOverlay(`<div><div class="kicker">CASE ${s.caseIndex + 1}</div><h1 class="display" style="font-size:4em">${esc(c.title)}</h1>
+            <div class="cast">${c.categories[0].options.map((x) => `<figure>
+              ${x.image ? `<img src="${esc(x.image)}" alt="">` : `<div class="noimg">${esc(x.icon || '?')}</div>`}
+              <figcaption>${esc(x.name)}<small>${esc(x.desc || '')}</small></figcaption></figure>`).join('')}</div>
+            <p style="font-size:min(1.1em, 2.6vh);max-width:75ch;margin:1em auto 0">${esc(c.intro)}</p></div>`, 30000);
+        } else if (c && now.solvers > seen.solvers && seen.solvers === 0) {
+          showOverlay(`<div><div class="kicker">CASE SOLVED</div><h1 class="display">${esc(c.solvers[0].name)}</h1>
+            <p class="big">cracked the mystery!${s.phase === 'lastcall' ? ` Everyone else: ${s.rules.lastCallMinutes} minutes of last call!` : ''}</p></div>`);
+        } else if (c && now.updates > seen.updates) {
+          const u = c.updates[c.updates.length - 1];
+          scrollToTop();
+          showOverlay(`<div><div class="kicker">NEW EVIDENCE · UPDATE ${u.number}</div>
+            ${u.clues.map((t) => `<p class="big">${esc(t)}</p>`).join('')}
+            ${u.receivers.length ? `<p class="big" style="color:var(--pumpkin)">Secret evidence just went to ${u.receivers.map(esc).join(', ')}</p>` : ''}</div>`, 20000);
+        } else if (c && s.phase === 'revealed' && seen.phase !== 'revealed') {
+          showOverlay(`<div><div class="kicker">THE TRUTH</div><h1 class="display" style="font-size:4em">${esc(c.solution.summary)}</h1>
+            <p class="big" style="font-weight:400">${esc(c.solution.story)}</p></div>`, 45000);
+        } else if (s.phase === 'finished' && seen.phase !== 'finished' && s.leaderboard[0]) {
+          showOverlay(`<div><div class="kicker">MASTER DETECTIVE OF THE NIGHT</div><h1 class="display">${esc(s.leaderboard[0].name)}</h1>
+            <p class="big">${s.leaderboard[0].score} points</p></div>`, 60000);
+        }
+      }
+      seen = now;
+    }
+
+    function render() {
+      const s = Game.state;
+      if (!s) return;
+      const url = joinUrl(s);
+      if (s.phase === 'lobby') {
+        root.innerHTML = `<div class="lobby">
+          <header>
+            <h1 class="display">${esc(s.title)}</h1>
+            <p class="tagline">${esc(s.tagline || '')}</p>
+          </header>
+          <div class="cast">${s.cast.map((x) => `<figure>
+            ${x.image ? `<img src="${esc(x.image)}" alt="">` : `<div class="noimg">${esc(x.icon || '?')}</div>`}
+            <figcaption>${esc(x.name)}<small>${esc(x.desc || '')}</small></figcaption></figure>`).join('')}</div>
+          <div class="join-steps">${joinHtml(s, url)}</div>
+          <div>
+            <div class="muted">${s.leaderboard.length} detective${s.leaderboard.length === 1 ? ' has' : 's have'} arrived</div>
+            <div class="names">${s.leaderboard.map((p) => `<span class="pill">${esc(p.name)}</span>`).join('')}</div>
+          </div>
+        </div>`;
+      } else {
+        const c = s.case;
+        root.innerHTML = `<div class="board">
+          <div class="col">
+            <div>
+              <span class="pill">Case ${s.caseIndex + 1} of ${s.caseCount}</span>
+              <h1 class="display">${esc(c.title)}</h1>
+              <p style="margin:.3em 0 0"><b>${esc(c.question)}</b></p>
+            </div>
+            <div class="card row clock-card">
+              <div><div class="muted" id="clockLabel"></div><div class="clock-big" id="clock"></div></div>
+              <span class="spacer"></span>
+              <div style="text-align:right"><div class="muted">Updates</div><div class="clock-big">${c.updates.length}/${c.totalUpdates}</div></div>
+            </div>
+            ${c.solution ? `<div class="card"><div class="muted">THE TRUTH</div><h2>${esc(c.solution.summary)}</h2>
+              <p style="margin:0">${esc(c.solution.story)}</p></div>` : ''}
+            ${c.solvers.length ? `<div class="card"><div class="muted">Solved by</div><div class="chips" style="margin-top:.4em">
+              ${c.solvers.map((x, i) => `<span class="chip ${i === 0 ? 'selected' : ''}">${i === 0 ? '👑 ' : ''}${esc(x.name)} +${x.points}</span>`).join('')}</div></div>` : ''}
+            <div class="hints-wrap">
+              ${c.updates.length ? `<ol class="hints">${c.updates.slice().reverse().map((u) => updateHtml(u)).join('')}</ol>` : ''}
+              <div class="card"><div class="muted">CASE FILE</div><ul class="facts">${c.facts.map((t) => `<li>${esc(t)}</li>`).join('')}</ul></div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="card lb"><h2 class="display" style="font-size:1.6em">Leaderboard</h2>${leaderboardHtml(s.leaderboard, { limit: 12 })}</div>
+            <div class="card join-card">${joinHtml(s, url, true)}</div>
+          </div>
+        </div>`;
+      }
+      drawQrs();
+      tickClock();
+    }
+
+    // The evidence column drifts slowly down and back up when it is longer than the screen,
+    // pausing at each end. pos lives outside the DOM, so re-renders don't make it jump.
+    const scroller = { pos: 0, dir: 1, pauseUntil: 0, last: 0 };
+    const SCROLL_PX_PER_S = 18;
+    function scrollToTop(holdMs = 8000) {
+      Object.assign(scroller, { pos: 0, dir: 1, pauseUntil: performance.now() + holdMs });
+    }
+    function autoScroll(t) {
+      const dt = Math.min(0.1, (t - (scroller.last || t)) / 1000);
+      scroller.last = t;
+      const el = document.querySelector('.hints-wrap');
+      if (el) {
+        const max = el.scrollHeight - el.clientHeight;
+        el.classList.toggle('scrolls', max > 4);
+        if (max <= 4) scroller.pos = 0;
+        else if (t >= scroller.pauseUntil) {
+          scroller.pos += scroller.dir * SCROLL_PX_PER_S * dt;
+          if (scroller.pos >= max) Object.assign(scroller, { pos: max, dir: -1, pauseUntil: t + 5000 });
+          if (scroller.pos <= 0) Object.assign(scroller, { pos: 0, dir: 1, pauseUntil: t + 8000 });
+        }
+        el.scrollTop = scroller.pos;
+      }
+      requestAnimationFrame(autoScroll);
+    }
+    requestAnimationFrame(autoScroll);
+
+    function tickClock() {
+      const s = Game.state;
+      const el = document.getElementById('clock');
+      if (!s || !el || !s.case) return;
+      const c = s.case;
+      const label = document.getElementById('clockLabel');
+      if (s.phase === 'lastcall') { label.textContent = 'Last call — truth revealed in'; el.textContent = fmtCountdown(c.lastCallEndsAt - Game.now()); }
+      else if (s.phase === 'revealed') { label.textContent = 'Status'; el.textContent = 'Case closed'; }
+      else if (s.phase === 'finished') { label.textContent = 'Status'; el.textContent = 'Game over'; }
+      else if (c.paused) { label.textContent = 'Paused'; el.textContent = fmtCountdown(c.pausedRemaining); }
+      else if (c.nextUpdateAt) { label.textContent = 'New evidence in'; el.textContent = fmtCountdown(c.nextUpdateAt - Game.now()); }
+      else { label.textContent = 'All evidence is out'; el.textContent = 'Solve it!'; }
+    }
+    setInterval(tickClock, 1000);
+
+    Game.live(() => Game.api('/api/state'), (s) => {
+      detectEvents(s);
+      render();
+    });
+  </script>
+</body>
+</html>

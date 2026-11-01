@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Host Controls</title>
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    .wrap { max-width: 1100px; }
+    .controls { display: flex; flex-wrap: wrap; gap: 8px; }
+    .spoiler { filter: blur(6px); cursor: pointer; transition: filter .2s; }
+    .spoiler.shown { filter: none; }
+    td ul { margin: 0; padding-left: 1.1em; font-size: .9rem; }
+    .scroll { overflow-x: auto; }
+    .cases { padding-left: 1.4em; margin: 10px 0 0; }
+    .cases li { padding: 8px 0; border-bottom: 1px solid var(--line); }
+    .cases li:last-child { border-bottom: 0; }
+    .cases .row { gap: 8px; }
+    .feed { list-style: none; padding: 0; margin: 0; max-height: 300px; overflow: auto; font-size: .9rem; }
+    .feed li { padding: 4px 0; border-bottom: 1px solid var(--line); }
+  </style>
+</head>
+<body>
+  <div class="wrap" id="root"><p class="muted">Loading…</p></div>
+  <script src="/common.js"></script>
+  <script>
+    const params = new URLSearchParams(location.search);
+    let key = params.get('key');
+    try {
+      if (key) sessionStorage.setItem('homeriddle.hostKey', key);
+      else key = sessionStorage.getItem('homeriddle.hostKey');
+    } catch {}
+    const root = document.getElementById('root');
+    let spoilers = false;
+    let refresh = () => {};
+    let busy = false;
+
+    async function act(body, confirmText) {
+      if (confirmText && !confirm(confirmText)) return;
+      try {
+        await Game.api('/api/host', { method: 'POST', body, headers: { 'X-Host-Key': key } });
+        refresh();
+      } catch (ex) {
+        toast(ex.message, 'bad');
+      }
+    }
+
+    function render() {
+      const s = Game.state;
+      if (!s) return;
+      // Don't wipe a field the host is typing into.
+      if (busy || root.contains(document.activeElement) && document.activeElement.matches('input')) return;
+      const h = s.host;
+      const c = s.case;
+      const phase = s.phase;
+      const live = phase === 'active' || phase === 'lastcall';
+      const isLast = s.caseIndex + 1 >= s.caseCount;
+      const maxTries = s.rules.maxWrongAccusationsPerCase;
+      const triesLeft = (p) => Math.max(0, maxTries - p.accusations.filter((a) => !a.correct && !a.forgiven).length);
+
+      root.innerHTML = `
+        <div class="row" style="margin-bottom:12px">
+          <h1 class="display" style="margin:0">Host controls</h1><span class="spacer"></span>
+          <a href="/board" target="_blank">Open TV board ↗</a>
+        </div>
+
+        <div class="card">
+          <div class="row"><span class="pill">Phase: ${phase}</span>
+            ${c ? `<span class="pill">Case ${s.caseIndex + 1}/${s.caseCount}: ${esc(c.title)}</span>
+            <span class="pill">Updates ${c.updates.length}/${c.totalUpdates}</span>
+            <b data-clock></b>` : ''}</div>
+          <div class="controls" style="margin-top:12px">
+            ${phase === 'lobby' ? `<button data-act="start">▶ Start case 1</button>` : ''}
+            ${phase === 'active' && !c.paused ? `<button class="secondary" data-act="pause">⏸ Pause updates</button>` : ''}
+            ${phase === 'active' && c.paused ? `<button data-act="resume">▶ Resume updates</button>` : ''}
+            ${phase === 'active' ? `<button class="secondary" data-act="update">Release next update now</button>` : ''}
+            ${live ? `<button class="danger" data-act="reveal" data-confirm="Reveal the solution and close this case?">📜 Reveal solution now</button>` : ''}
+            ${phase === 'revealed' && !isLast ? `<button data-act="next">▶ Start case ${s.caseIndex + 2}</button>` : ''}
+            ${phase === 'revealed' && isLast ? `<button data-act="finish">🏆 End the night</button>` : ''}
+          </div>
+          <form class="row" id="intervalForm" style="margin-top:12px">
+            <label for="interval" style="margin:0">Update every</label>
+            <input id="interval" type="number" step="0.5" min="0.25" max="120" style="width:90px" value="${h.intervalMs / 60000}">
+            <span>minutes</span><button class="secondary small">Set</button>
+          </form>
+          ${h.upcoming.length && phase === 'active' ? `<p style="margin-bottom:0"><small>Next update:</small></p><ul style="margin:4px 0 0">
+            ${h.upcoming.map((x) => `<li><small>${x.public ? 'public' : 'secret'}</small> <span class="spoiler ${spoilers ? 'shown' : ''}">${esc(x.text)}</span></li>`).join('')}</ul>` : ''}
+        </div>
+
+        <div class="card">
+          <div class="row"><h3 style="margin:0">🔐 The vault</h3><span class="spacer"></span>
+            <button class="secondary small" data-act="vault" data-on="${h.vault.off ? '1' : ''}">${h.vault.off ? 'Turn vaults on' : 'Turn vaults off'}</button></div>
+          ${h.vault.off ? '<p class="muted">Vaults are off: guests see a sealed vault.</p>' : h.vault.code ? `
+            <p style="margin-bottom:4px">Code: <b class="spoiler ${spoilers ? 'shown' : ''}" style="font-family:ui-monospace,monospace;letter-spacing:.2em">${esc(h.vault.code)}</b>
+              · ${h.vault.style === 'wordle' ? 'Wordle style (colour per digit)' : 'Mastermind style (counts only)'}
+              · ${h.vault.attempts} ${h.vault.attempts === 1 ? 'try' : 'tries'} so far</p>
+            ${h.vault.golden.length ? `<p style="margin:4px 0"><small>Golden clue (first opener only):</small> <span class="spoiler ${spoilers ? 'shown' : ''}">${h.vault.golden.map(esc).join(' ')}</span></p>` : ''}
+            ${h.vault.openers.length
+              ? `<ol style="margin:6px 0 0">${h.vault.openers.map((o, i) => `<li>${esc(o.name)} <small>+${o.points}${i === 0 && h.vault.golden.length ? ' + golden clue' : ''} · ${new Date(o.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</small></li>`).join('')}</ol>`
+              : '<p class="muted" style="margin:4px 0 0">Not opened yet.</p>'}` : '<p class="muted">Each case gets a new code when it starts.</p>'}
+        </div>
+
+        <div class="card">
+          <h3>Wi-Fi for guests</h3>
+          <p class="muted" style="margin-top:0">The TV shows a second QR code that joins phones to this network, so guests can reach the game. Leave the name empty to hide it.</p>
+          <form class="row" id="wifiForm">
+            <input id="wifiSsid" maxlength="32" placeholder="Network name" autocomplete="off" value="${esc(s.wifi?.ssid || '')}">
+            <input id="wifiPassword" maxlength="63" placeholder="Password (empty if open)" autocomplete="off" value="${esc(s.wifi?.password || '')}">
+            <button class="secondary small">Save</button>
+          </form>
+        </div>
+
+        <div class="card scroll">
+          <h3>Difficulty curve <small>(case ${s.caseIndex + 1})</small></h3>
+          <p class="muted" style="margin-top:0">How many answers are still possible if the guests pooled every clue released so far, or only the public ones.
+            When the first column hits 1, a team that shares everything can solve it.</p>
+          <table><thead><tr><th>Stage</th><th>Pooling everything</th><th>Public clues only</th></tr></thead>
+          <tbody>${h.analysis.map((st) => `<tr style="${phase !== 'lobby' && st.update === h.released ? 'background:var(--pumpkin-soft)' : ''}">
+            <td>${st.update === 0 ? 'Start' : `Update ${st.update}`}${phase !== 'lobby' && st.update === h.released ? ' ◀ now' : ''}</td>
+            <td>${st.answersAll === 1 ? '✅ solvable' : `${st.answersAll} possible`}</td>
+            <td>${st.answersPublic === 1 ? '✅ solvable' : `${st.answersPublic} possible`}</td></tr>`).join('')}</tbody></table>
+        </div>
+
+        <div class="card">
+          <div class="row"><h3 style="margin:0">Cases</h3><span class="spacer"></span>
+            <button class="secondary small" id="toggleSpoilers">${spoilers ? 'Hide' : 'Show'} spoilers</button></div>
+          <ol class="cases">${h.cases.map((x, i) => {
+            const current = i === s.caseIndex && phase !== 'lobby';
+            const running = current && live;
+            const confirmText = live && !running
+              ? `Case ${s.caseIndex + 1} is still running. Stop it and start “${x.title}”?`
+              : x.done ? `“${x.title}” was already played. Play it again? Guesses start fresh; points already earned stay.` : '';
+            return `<li>
+              <div class="row"><b>${esc(x.title)}</b>
+                ${running ? '<span class="pill">running</span>' : current ? '<span class="pill">current</span>' : ''}
+                ${x.done && !running ? '<span class="pill">✓ played</span>' : ''}
+                <span class="spacer"></span>
+                ${running ? '' : `<button class="small ${x.done ? 'secondary' : ''}" data-act="start" data-case="${i}"
+                  ${confirmText ? `data-confirm="${esc(confirmText)}"` : ''}>▶ ${x.done ? 'Replay' : 'Start'}</button>`}
+              </div>
+              <span class="spoiler ${spoilers ? 'shown' : ''}">${esc(x.solution)}</span></li>`;
+          }).join('')}</ol>
+        </div>
+
+        <div class="card scroll">
+          <h3>Players (${h.players.length})</h3>
+          <table>
+            <thead><tr><th>Player</th><th>Score</th><th>Clues this case</th><th>Accusations</th><th>Actions</th></tr></thead>
+            <tbody>${h.players.sort((a, b) => b.score - a.score).map((p) => `
+              <tr>
+                <td><b>${esc(p.name)}</b><br><small>${esc(p.costume)}</small>
+                  ${p.sameDevice.length ? `<br><small class="pill" title="Joined from the same phone">⚠️ same phone as ${p.sameDevice.map(esc).join(', ')}</small>` : ''}</td>
+                <td><b>${p.score}</b></td>
+                <td><ul class="spoiler ${spoilers ? 'shown' : ''}">${p.cards.map((t) => `<li>${esc(t)}</li>`).join('')}</ul></td>
+                <td>${p.accusations.map((a) => (a.correct ? '✅' : a.forgiven ? '<s title="Given back">❌</s>' : '❌')).join(' ')}
+                  ${live && maxTries && !p.accusations.some((a) => a.correct) ? `<br><small>${triesLeft(p)} of ${maxTries} tries left</small>` : ''}</td>
+                <td><div class="controls">
+                  <button class="small" data-bonus="${p.id}" data-amount="25">+25</button>
+                  <button class="small secondary" data-bonus="${p.id}" data-amount="-10">−10</button>
+                  <button class="small secondary" data-custom="${p.id}">±…</button>
+                  <button class="small secondary" data-act="clearCooldown" data-player="${p.id}">Clear cooldown</button>
+                  ${live && maxTries && triesLeft(p) < maxTries ? `<button class="small" data-act="resetTries" data-player="${p.id}" data-confirm="Give ${esc(p.name)} all ${maxTries} tries back for this case? The points their wrong guesses cost stay.">Reset tries</button>` : ''}
+                  <button class="small secondary" data-link="${p.token}">Copy rejoin link</button>
+                  <button class="small danger" data-act="kick" data-player="${p.id}" data-confirm="Remove ${esc(p.name)} from the game?">Remove</button>
+                </div></td>
+              </tr>`).join('')}</tbody>
+          </table>
+          <p class="muted" style="margin-bottom:0">Use +25 / ±… for costume contests, side challenges, or bribes. 🍬 Clues are blurred: click to peek.</p>
+        </div>
+
+        <div class="card"><h3>Activity</h3>
+          <ul class="feed">${s.feed.slice().reverse().map((f) => `<li><small>${fmtTime(f.at)}</small> ${esc(f.text)}</li>`).join('')}</ul></div>
+
+        <div class="card"><h3>Danger zone</h3><div class="controls">
+          <button class="secondary" data-act="reset" data-keep="1" data-confirm="Restart the game from case 1? Players stay but all scores are wiped.">Restart (keep players)</button>
+          <button class="danger" data-act="reset" data-confirm="Wipe EVERYTHING including all players?">Wipe everything</button>
+        </div></div>`;
+      tickClock();
+    }
+
+    root.addEventListener('click', async (e) => {
+      const b = e.target.closest('button');
+      if (!b) return;
+      if (b.id === 'toggleSpoilers') { spoilers = !spoilers; return render(); }
+      if (b.closest('#intervalForm, #wifiForm')) return;
+      if (b.dataset.act) {
+        return act({
+          action: b.dataset.act,
+          playerId: b.dataset.player,
+          keepPlayers: !!b.dataset.keep,
+          caseIndex: b.dataset.case != null ? Number(b.dataset.case) : undefined,
+          on: b.dataset.on != null ? !!b.dataset.on : undefined,
+        }, b.dataset.confirm);
+      }
+      if (b.dataset.bonus) {
+        return act({ action: 'bonus', playerId: b.dataset.bonus, amount: Number(b.dataset.amount) });
+      }
+      if (b.dataset.custom) {
+        busy = true;
+        const amount = prompt('Points to add (negative to subtract):', '50');
+        const reason = amount ? prompt('Reason (optional, shown to everyone):', 'Best costume') : null;
+        busy = false;
+        if (amount) await act({ action: 'bonus', playerId: b.dataset.custom, amount: Number(amount), reason });
+        return render();
+      }
+      if (b.dataset.link) {
+        const link = `${location.origin}/?t=${b.dataset.link}`;
+        try { await navigator.clipboard.writeText(link); toast('Rejoin link copied'); }
+        catch { prompt('Rejoin link:', link); }
+      }
+    });
+
+    root.addEventListener('submit', (e) => {
+      if (e.target.id === 'wifiForm') {
+        e.preventDefault();
+        document.activeElement.blur();
+        return act({ action: 'wifi', ssid: document.getElementById('wifiSsid').value, password: document.getElementById('wifiPassword').value });
+      }
+      if (e.target.id !== 'intervalForm') return;
+      e.preventDefault();
+      const minutes = Number(document.getElementById('interval').value);
+      document.activeElement.blur();
+      act({ action: 'interval', minutes });
+    });
+
+    root.addEventListener('click', (e) => {
+      if (e.target.classList.contains('spoiler')) e.target.classList.toggle('shown');
+    });
+
+    function tickClock() {
+      const s = Game.state;
+      document.querySelectorAll('[data-clock]').forEach((el) => { el.textContent = s ? updateClock(s.case, s.phase) : ''; });
+    }
+    setInterval(tickClock, 1000);
+
+    if (!key) {
+      root.innerHTML = '<div class="card"><h2>Host key needed</h2><p>Open the host link printed in the terminal when you started the server (it ends in <code>?key=…</code>).</p></div>';
+    } else {
+      refresh = Game.live(async () => {
+        try {
+          return await Game.api('/api/host', { headers: { 'X-Host-Key': key } });
+        } catch (ex) {
+          if (ex.status === 403) root.innerHTML = '<div class="card"><h2>Wrong host key</h2><p>Use the host link printed in the terminal.</p></div>';
+          throw ex;
+        }
+      }, render);
+    }
+  </script>
+</body>
+</html>
